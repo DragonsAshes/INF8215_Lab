@@ -86,13 +86,39 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
+    from game import Actions
 
-    '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 1 ICI
-    '''
+    fringe = util.Stack()
+    fringe.push((problem.getStartState(), 0))
 
-    util.raiseNotDefined()
+    visited = []
 
+    current_state, current_cost = fringe.pop() 
+
+    while not problem.isGoalState(current_state):
+        visited.append((current_state, current_cost))
+
+        for successor, direction, cost in problem.getSuccessors(current_state):
+            if successor not in [a[0] for a in visited]:
+                fringe.push((successor, current_cost+1))
+
+        if fringe.isEmpty():
+            return []
+        current_state, current_cost = fringe.pop()
+
+
+    directions = []
+    print(visited)
+    previous_state, previous_cost = current_state, current_cost
+    for state, cost in visited[::-1]:
+        print(previous_state, state)
+        if cost >= previous_cost:
+            continue
+        directions.insert(0, Actions.vectorToDirection((previous_state[0]-state[0], previous_state[1]-state[1])))
+        previous_state, previous_cost = state, cost
+        
+    print(directions)
+    return directions
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
