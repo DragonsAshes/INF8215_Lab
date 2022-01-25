@@ -72,6 +72,33 @@ def tinyMazeSearch(problem):
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
+# This class allows to store the previous node while exploring for faster backtracking
+class Node:
+
+    def __init__(self, state):
+        self.state = state
+        self.previous = None
+        self.direction = None
+
+    def getState(self):
+        return self.state 
+
+    def setPrevious(self, previous):
+        self.previous = previous
+
+    def getPrevious(self):
+        return self.previous
+
+    # Direction to get from previous node to this one
+    def setDirection(self, direction):
+        self.direction = direction
+
+    def getDirection(self):
+        return self.direction
+
+    def __eq__(self, other):
+        return self.getState() == other.getState()
+
 def depthFirstSearch(problem):
     """
     Search the deepest nodes in the search tree first.
@@ -89,35 +116,31 @@ def depthFirstSearch(problem):
     from game import Actions
 
     fringe = util.Stack()
-    fringe.push((problem.getStartState(), 0))
+    fringe.push(Node(problem.getStartState()))
 
     visited = []
 
-    current_state, current_cost = fringe.pop() 
+    current_node = fringe.pop()
 
-    while not problem.isGoalState(current_state):
-        visited.append((current_state, current_cost))
+    while not problem.isGoalState(current_node.getState()):
+        visited.append(current_node)
 
-        for successor, direction, cost in problem.getSuccessors(current_state):
-            if successor not in [a[0] for a in visited]:
-                fringe.push((successor, current_cost+1))
+        for successor, direction, cost in problem.getSuccessors(current_node.getState()):
+            next_node = Node(successor)
+            if next_node not in visited:
+                next_node.setPrevious(current_node)
+                next_node.setDirection(direction)
+                fringe.push(next_node)
 
         if fringe.isEmpty():
             return []
-        current_state, current_cost = fringe.pop()
-
+        current_node = fringe.pop()
 
     directions = []
-    print(visited)
-    previous_state, previous_cost = current_state, current_cost
-    for state, cost in visited[::-1]:
-        print(previous_state, state)
-        if cost >= previous_cost:
-            continue
-        directions.insert(0, Actions.vectorToDirection((previous_state[0]-state[0], previous_state[1]-state[1])))
-        previous_state, previous_cost = state, cost
-        
-    print(directions)
+    while current_node.getPrevious() is not None:
+        directions.insert(0, current_node.getDirection())
+        current_node = current_node.getPrevious()
+
     return directions
 
 def breadthFirstSearch(problem):
