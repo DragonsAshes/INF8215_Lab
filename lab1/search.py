@@ -149,9 +149,41 @@ def breadthFirstSearch(problem):
 
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 2 ICI
-    '''
 
-    util.raiseNotDefined()
+        avoir une liste d etat visites
+        mettre en queue de fringe
+        changer d'etat en prenant l element en tete de la fringe
+
+    '''
+    fringe = util.Queue()
+    fringe.push(Node(problem.getStartState()))
+
+    visited = []
+
+    current_node = fringe.pop()
+
+    while not problem.isGoalState(current_node.getState()):
+        visited.append(current_node)
+
+        for successor, direction, cost in problem.getSuccessors(current_node.getState()):
+            next_node = Node(successor)
+            if next_node not in visited:
+                next_node.setPrevious(current_node)
+                next_node.setDirection(direction)
+                fringe.push(next_node)
+
+        if fringe.isEmpty():
+            return []
+        
+        while current_node in visited:
+            current_node = fringe.pop()
+
+    directions = []
+    while current_node.getPrevious() is not None:
+        directions.insert(0, current_node.getDirection())
+        current_node = current_node.getPrevious()
+
+    return directions
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
