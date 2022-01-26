@@ -137,7 +137,9 @@ def depthFirstSearch(problem):
 
         if fringe.isEmpty():
             return []
-        current_node = fringe.pop()
+
+        while current_node in visited:
+            current_node = fringe.pop()
 
     directions = []
     while current_node.getPrevious() is not None:
