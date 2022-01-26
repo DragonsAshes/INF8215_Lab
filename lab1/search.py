@@ -1,3 +1,4 @@
+from __future__ import annotations
 # search.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
@@ -18,6 +19,8 @@ Pacman agents (in searchAgents.py).
 """
 
 import util
+from game import Directions
+from dataclasses import dataclass
 
 class SearchProblem:
     """
@@ -175,6 +178,7 @@ def breadthFirstSearch(problem):
         if fringe.isEmpty():
             return []
         
+        # Don't visit an already visited node even if it is in the fringe
         while current_node in visited:
             current_node = fringe.pop()
 
@@ -202,14 +206,52 @@ def nullHeuristic(state, problem=None):
     """
     return 0
 
+@dataclass(eq=False)
+class ANode:
+    """A structure used to store information about a state useful for the A* algorithm."""
+    state: any #: The stat represented by the ANode
+    previous: ANode = None #: The previous ANode we went through to go to this one
+    direction: Direction = None #: The direction to go from the previous ANode to this one
+    gcost: int = 0 #: The cost to go to that node from the start
+    hcost: int = None #: The approximated cost to go from that node to the end
+
+    def __eq__(self, other):
+        return self.state == other.state
+
+
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 4 ICI
-    '''
+    fringe = util.PriorityQueue()
+    visited = []
+    directions = []
+    
+    fringe.push(ANode(problem.getStartState()), heuristic(problem.getStartState(), problem))
 
-    util.raiseNotDefined()
+    while not problem.isGoalState((current_node := fringe.pop()).state):
+        if current_node in visited:
+            if fringe.isEmpty():
+                break
+            continue
 
+        visited.append(current_node)
+
+        for successor, direction, cost in problem.getSuccessors(current_node.state):
+            next_node = ANode(successor)
+            if next_node not in visited: # No need to put a visited node in the fringe
+                next_node.previous = current_node
+                next_node.direction = direction
+                next_node.hcost = heuristic(next_node.state, problem)
+                next_node.gcost = current_node.gcost + cost
+                fringe.push(next_node, next_node.gcost + next_node.hcost)
+
+        if fringe.isEmpty():
+            break
+    else:
+        while current_node.previous is not None:
+            directions.insert(0, current_node.direction)
+            current_node = current_node.previous
+
+    return directions
 
 # Abbreviations
 bfs = breadthFirstSearch
