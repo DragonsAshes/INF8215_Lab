@@ -1,4 +1,4 @@
-from __future__ import annotations # This allows recursive class definition
+from __future__ import annotations # This allows to type hint recursive classes
 # search.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
