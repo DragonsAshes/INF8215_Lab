@@ -178,7 +178,7 @@ def uniformCostSearch(problem):
         INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
     '''
     fringe = util.PriorityQueue()
-    fringe.push(Node(problem.getStartState()), 0)
+    fringe.push(ANode(problem.getStartState()), 0)
 
     visited = []
 
@@ -187,11 +187,12 @@ def uniformCostSearch(problem):
     while not problem.isGoalState(current_node.state):
         visited.append(current_node)
 
-        for successor, cost, direction in problem.getSuccessors(current_node.state):
+        for successor, direction, cost in problem.getSuccessors(current_node.state):
             next_node = Node(successor)
             next_node.previous = current_node
             next_node.direction = direction
-            fringe.push(next_node, cost)
+            next_node.gcost = current_node.gcost + cost
+            fringe.push(next_node, current_node.gcost + cost)
 
         if fringe.isEmpty():
             return []
@@ -199,12 +200,12 @@ def uniformCostSearch(problem):
         while current_node in visited:
             current_node = fringe.pop()
 
-        directions = []
-        while current_node.previous is not None:
-            directions.insert(0, current_node.direction)
-            current_node = current_node.previous
-
-    util.raiseNotDefined()
+    directions = []
+    while current_node.previous is not None:
+        directions.insert(0, current_node.direction)
+        current_node = current_node.previous
+        
+    return directions
 
 def nullHeuristic(state, problem=None):
     """
