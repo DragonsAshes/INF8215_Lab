@@ -198,6 +198,32 @@ def uniformCostSearch(problem):
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
     '''
+    fringe = util.PriorityQueue()
+    fringe.push(Node(problem.getStartState()), 0)
+
+    visited = []
+
+    current_node = fringe.pop()
+
+    while not problem.isGoalState(current_node.state):
+        visited.append(current_node)
+
+        for successor, cost, direction in problem.getSuccessors(current_node.state):
+            next_node = Node(successor)
+            next_node.previous = current_node
+            next_node.direction = direction
+            fringe.push(next_node, cost)
+
+        if fringe.isEmpty():
+            return []
+
+        while current_node in visited:
+            current_node = fringe.pop()
+
+        directions = []
+        while current_node.previous is not None:
+            directions.insert(0, current_node.direction)
+            current_node = current_node.previous
 
     util.raiseNotDefined()
 
