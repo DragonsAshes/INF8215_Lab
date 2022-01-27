@@ -1,4 +1,4 @@
-from __future__ import annotations
+from __future__ import annotations # This allows recursive class definition
 # search.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
@@ -17,6 +17,8 @@ from __future__ import annotations
 In search.py, you will implement generic search algorithms which are called by
 Pacman agents (in searchAgents.py).
 """
+
+## Imports
 
 import util
 from game import Directions
@@ -64,43 +66,29 @@ class SearchProblem:
         """
         util.raiseNotDefined()
 
-
 def tinyMazeSearch(problem):
     """
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
     sequence of moves will be incorrect, so only use this for tinyMaze.
     """
-    from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
 
-# This class allows to store the previous node while exploring for faster backtracking
+@dataclass(eq=False)
 class Node:
-
-    def __init__(self, state):
-        self.state = state
-        self.previous = None
-        self.direction = None
-
-    def getState(self):
-        return self.state 
-
-    def setPrevious(self, previous):
-        self.previous = previous
-
-    def getPrevious(self):
-        return self.previous
-
-    # Direction to get from previous node to this one
-    def setDirection(self, direction):
-        self.direction = direction
-
-    def getDirection(self):
-        return self.direction
+    """
+    This data class allows to store the previous node and direction from that node while exploring for faster backtracking
+    """
+    state: any #: The stat represented by the Node
+    previous: ANode = None #: The previous Node we went through to go to this one
+    direction: Direction = None #: The direction to go from the previous Node to this one
 
     def __eq__(self, other):
-        return self.getState() == other.getState()
+        """
+        Two nodes are equal if their states are equal
+        """
+        return self.state == other.state
 
 def depthFirstSearch(problem):
     """
@@ -125,14 +113,14 @@ def depthFirstSearch(problem):
 
     current_node = fringe.pop()
 
-    while not problem.isGoalState(current_node.getState()):
+    while not problem.isGoalState(current_node.state):
         visited.append(current_node)
 
-        for successor, direction, cost in problem.getSuccessors(current_node.getState()):
+        for successor, direction, cost in problem.getSuccessors(current_node.state):
             next_node = Node(successor)
             if next_node not in visited:
-                next_node.setPrevious(current_node)
-                next_node.setDirection(direction)
+                next_node.previous = current_node
+                next_node.direction = direction
                 fringe.push(next_node)
 
         if fringe.isEmpty():
@@ -142,24 +130,15 @@ def depthFirstSearch(problem):
             current_node = fringe.pop()
 
     directions = []
-    while current_node.getPrevious() is not None:
-        directions.insert(0, current_node.getDirection())
-        current_node = current_node.getPrevious()
+    while current_node.previous is not None:
+        directions.insert(0, current_node.direction)
+        current_node = current_node.previous
 
     return directions
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
 
-
-    '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 2 ICI
-
-        avoir une liste d etat visites
-        mettre en queue de fringe
-        changer d'etat en prenant l element en tete de la fringe
-
-    '''
     fringe = util.Queue()
     fringe.push(Node(problem.getStartState()))
 
@@ -167,14 +146,14 @@ def breadthFirstSearch(problem):
 
     current_node = fringe.pop()
 
-    while not problem.isGoalState(current_node.getState()):
+    while not problem.isGoalState(current_node.state):
         visited.append(current_node)
 
-        for successor, direction, cost in problem.getSuccessors(current_node.getState()):
+        for successor, direction, cost in problem.getSuccessors(current_node.state):
             next_node = Node(successor)
             if next_node not in visited:
-                next_node.setPrevious(current_node)
-                next_node.setDirection(direction)
+                next_node.previous = current_node
+                next_node.direction = direction
                 fringe.push(next_node)
 
         if fringe.isEmpty():
@@ -185,19 +164,14 @@ def breadthFirstSearch(problem):
             current_node = fringe.pop()
 
     directions = []
-    while current_node.getPrevious() is not None:
-        directions.insert(0, current_node.getDirection())
-        current_node = current_node.getPrevious()
+    while current_node.previous is not None:
+        directions.insert(0, current_node.direction)
+        current_node = current_node.previous
 
     return directions
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-
-
-    '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
-    '''
 
     util.raiseNotDefined()
 
@@ -209,17 +183,12 @@ def nullHeuristic(state, problem=None):
     return 0
 
 @dataclass(eq=False)
-class ANode:
-    """A structure used to store information about a state useful for the A* algorithm."""
-    state: any #: The stat represented by the ANode
-    previous: ANode = None #: The previous ANode we went through to go to this one
-    direction: Direction = None #: The direction to go from the previous ANode to this one
+class ANode(Node):
+    """
+    A structure used to store information about a state and is used for the A* algorithm.
+    It has the properties of Node and the gcost property.
+    """
     gcost: int = 0 #: The cost to go to that node from the start
-    hcost: int = None #: The approximated cost to go from that node to the end
-
-    def __eq__(self, other):
-        return self.state == other.state
-
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
@@ -239,12 +208,11 @@ def aStarSearch(problem, heuristic=nullHeuristic):
 
         for successor, direction, cost in problem.getSuccessors(current_node.state):
             next_node = ANode(successor)
-            if next_node not in visited: # No need to put a visited node in the fringe
-                next_node.previous = current_node
-                next_node.direction = direction
-                next_node.hcost = heuristic(next_node.state, problem)
-                next_node.gcost = current_node.gcost + cost
-                fringe.push(next_node, next_node.gcost + next_node.hcost)
+            next_node.previous = current_node
+            next_node.direction = direction
+            next_node.hcost = heuristic(next_node.state, problem)
+            next_node.gcost = current_node.gcost + cost
+            fringe.push(next_node, next_node.gcost + next_node.hcost)
 
         if fringe.isEmpty():
             break
