@@ -80,15 +80,26 @@ class Node:
     """
     This data class allows to store the previous node and direction from that node while exploring for faster backtracking
     """
-    state: any #: The stat represented by the Node
+    state: any #: The stat represented by the Node. It must be hashable.
     previous: ANode = None #: The previous Node we went through to go to this one
     direction: Direction = None #: The direction to go from the previous Node to this one
+
+    def construct_path(self):
+        if self.previous is not None:
+            return self.previous.construct_path() + [self.direction]
+        return []
 
     def __eq__(self, other):
         """
         Two nodes are equal if their states are equal
         """
         return self.state == other.state
+
+    def __hash__(self):
+        """
+        Returns the hash of the Node which is the hash of its state
+        """
+        return hash(self.state)
 
 def depthFirstSearch(problem):
     """
@@ -104,69 +115,57 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
+    visited = set()
     fringe = util.Stack()
     fringe.push(Node(problem.getStartState()))
 
-    visited = []
+    while not (fringe.isEmpty() or problem.isGoalState((current_node := fringe.pop()).state)):
+        if current_node in visited:
+            continue
 
-    current_node = fringe.pop()
-
-    while not problem.isGoalState(current_node.state):
-        visited.append(current_node)
+        visited.add(current_node)
 
         for successor, direction, cost in problem.getSuccessors(current_node.state):
-            next_node = Node(successor)
-            if next_node not in visited:
-                next_node.previous = current_node
-                next_node.direction = direction
-                fringe.push(next_node)
+            fringe.push(Node(successor, current_node, direction))
+    
+    if problem.isGoalState(current_node.state):
+        return current_node.construct_path()
 
-        if fringe.isEmpty():
-            return []
-
-        while current_node in visited:
-            current_node = fringe.pop()
-
-    directions = []
-    while current_node.previous is not None:
-        directions.insert(0, current_node.direction)
-        current_node = current_node.previous
-
-    return directions
+    return []
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
 
     fringe = util.Queue()
+    visited = set()
+    directions = []
+
     fringe.push(Node(problem.getStartState()))
 
-    visited = []
+    while not problem.isGoalState((current_node := fringe.pop()).state):
+        if current_node in visited:
+            if fringe.isEmpty():
+                break
+            continue
 
-    current_node = fringe.pop()
-
-    while not problem.isGoalState(current_node.state):
-        visited.append(current_node)
+        visited.add(current_node)
 
         for successor, direction, cost in problem.getSuccessors(current_node.state):
-            next_node = Node(successor)
-            if next_node not in visited:
-                next_node.previous = current_node
-                next_node.direction = direction
-                fringe.push(next_node)
-
-        if fringe.isEmpty():
-            return []
-        
-        # Don't visit an already visited node even if it is in the fringe
-        while current_node in visited:
-            current_node = fringe.pop()
-
-    directions = []
-    while current_node.previous is not None:
-        directions.insert(0, current_node.direction)
-        current_node = current_node.previous
+            fringe.push(Node(successor, current_node, direction))
+    else:
+        while current_node.previous is not None:
+            directions.insert(0, current_node.direction)
+            current_node = current_node.previous
 
     return directions
+
+@dataclass(eq=False)
+class ANode(Node):
+    """
+    A structure used to store information about a state and is used for the A* algorithm and the UCS algorithm.
+    It has the properties of Node and the gcost property.
+    """
+    gcost: int = 0 #: The cost to go to that node from the start
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
@@ -179,14 +178,6 @@ def nullHeuristic(state, problem=None):
     goal in the provided SearchProblem.  This heuristic is trivial.
     """
     return 0
-
-@dataclass(eq=False)
-class ANode(Node):
-    """
-    A structure used to store information about a state and is used for the A* algorithm.
-    It has the properties of Node and the gcost property.
-    """
-    gcost: int = 0 #: The cost to go to that node from the start
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
