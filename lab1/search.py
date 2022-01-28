@@ -1,4 +1,4 @@
-from __future__ import annotations # This allows to type hint recursive classes
+from __future__ import annotations # This allows to type hint recursive classes and to use typed lists
 # search.py
 # ---------
 # Licensing Information:  You are free to use or extend these projects for
@@ -80,11 +80,22 @@ class Node:
     """
     This data class allows to store the previous node and direction from that node while exploring for faster backtracking
     """
-    state: any #: The stat represented by the Node. It must be hashable.
-    previous: ANode = None #: The previous Node we went through to go to this one
-    direction: Direction = None #: The direction to go from the previous Node to this one
+    state: any
+    """The state represented by the Node. It must be hashable"""
+    previous: ANode = None
+    """
+    The previous Node we went through to go to this one.
+    """
+    direction: Direction = None 
+    """
+    The direction to go from the previous Node to this one
+    """
 
-    def construct_path(self):
+    def construct_path(self: Node) -> list[Direction]:
+        """
+        Returns the list of direction to go from the start node to this node.
+        """
+
         if self.previous is not None:
             return self.previous.construct_path() + [self.direction]
         return []
@@ -93,12 +104,14 @@ class Node:
         """
         Two nodes are equal if their states are equal
         """
+        
         return self.state == other.state
 
     def __hash__(self):
         """
         Returns the hash of the Node which is the hash of its state
         """
+
         return hash(self.state)
 
 def depthFirstSearch(problem):
@@ -115,94 +128,70 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    visited = set()
-    fringe = util.Stack()
+
+    visited = set() # Set of visited nodes
+    fringe = util.Stack() # LIFO fringe
     fringe.push(Node(problem.getStartState()))
 
+    # Pop the fringe if it's not empty and stop if we arrive at the goal
     while not (fringe.isEmpty() or problem.isGoalState((current_node := fringe.pop()).state)):
-        if current_node in visited:
+        if current_node in visited: # Check if current node is visted because we search on a graph
             continue
-
         visited.add(current_node)
-
-        for successor, direction, cost in problem.getSuccessors(current_node.state):
-            fringe.push(Node(successor, current_node, direction))
+        for state, direction, cost in problem.getSuccessors(current_node.state):
+            fringe.push(Node(state, current_node, direction)) # Add successors to the fringe
     
-    if problem.isGoalState(current_node.state):
-        return current_node.construct_path()
-
-    return []
+    # Reconstruct the path, if the last node is not the goal there is no solution
+    return current_node.construct_path() if problem.isGoalState(current_node.state) else []
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
 
-    fringe = util.Queue()
-    visited = set()
-    directions = []
-
+    visited = set() # Set of visited nodes
+    fringe = util.Queue() # FIFO fringe
     fringe.push(Node(problem.getStartState()))
 
-    while not problem.isGoalState((current_node := fringe.pop()).state):
-        if current_node in visited:
-            if fringe.isEmpty():
-                break
+    # Pop the fringe if it's not empty and stop if we arrive at the goal
+    while not (fringe.isEmpty() or problem.isGoalState((current_node := fringe.pop()).state)):
+        if current_node in visited: # Check if current node is visted because we search on a graph
             continue
-
         visited.add(current_node)
-
-        for successor, direction, cost in problem.getSuccessors(current_node.state):
-            fringe.push(Node(successor, current_node, direction))
-    else:
-        while current_node.previous is not None:
-            directions.insert(0, current_node.direction)
-            current_node = current_node.previous
-
-    return directions
+        for state, direction, cost in problem.getSuccessors(current_node.state):
+            fringe.push(Node(state, current_node, direction)) # Add successors to the fringe
+    
+    # Reconstruct the path, if the last node is not the goal there is no solution
+    return current_node.construct_path() if problem.isGoalState(current_node.state) else []
 
 @dataclass(eq=False)
 class ANode(Node):
     """
     A structure used to store information about a state and is used for the A* algorithm and the UCS algorithm.
-    It has the properties of Node and the gcost property.
     """
-    gcost: int = 0 #: The cost to go to that node from the start
+
+    gcost: int = 0
+    """
+    The cost to go to that node from the start
+    """
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
 
-
-    '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 3 ICI
-    '''
-    fringe = util.PriorityQueue()
+    visited = set() # Set of visited nodes
+    fringe = util.PriorityQueue() # FIFO fringe
     fringe.push(ANode(problem.getStartState()), 0)
 
-    visited = []
+    # Pop the fringe if it's not empty and stop if we arrive at the goal
+    while not (fringe.isEmpty() or problem.isGoalState((current_node := fringe.pop()).state)):
+        if current_node in visited: # Check if current node is visted because we search on a graph
+            continue
+        visited.add(current_node)
+        for state, direction, cost in problem.getSuccessors(current_node.state):
+            next_node = ANode(state, current_node, direction, current_node.gcost + cost)
+            fringe.push(next_node, next_node.gcost) # Add successors to the fringe
+    
+    # Reconstruct the path, if the last node is not the goal there is no solution
+    return current_node.construct_path() if problem.isGoalState(current_node.state) else []
 
-    current_node = fringe.pop()
-
-    while not problem.isGoalState(current_node.state):
-        visited.append(current_node)
-
-        for successor, direction, cost in problem.getSuccessors(current_node.state):
-            next_node = Node(successor)
-            next_node.previous = current_node
-            next_node.direction = direction
-            next_node.gcost = current_node.gcost + cost
-            fringe.push(next_node, current_node.gcost + cost)
-
-        if fringe.isEmpty():
-            return []
-
-        while current_node in visited:
-            current_node = fringe.pop()
-
-    directions = []
-    while current_node.previous is not None:
-        directions.insert(0, current_node.direction)
-        current_node = current_node.previous
-        
-    return directions
 
 def nullHeuristic(state, problem=None):
     """
@@ -213,36 +202,22 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    fringe = util.PriorityQueue()
-    visited = []
-    directions = []
-    
+
+    visited = set() # Set of visited nodes
+    fringe = util.PriorityQueue() # FIFO fringe
     fringe.push(ANode(problem.getStartState()), heuristic(problem.getStartState(), problem))
 
-    while not problem.isGoalState((current_node := fringe.pop()).state):
-        if current_node in visited:
-            if fringe.isEmpty():
-                break
+    # Pop the fringe if it's not empty and stop if we arrive at the goal
+    while not (fringe.isEmpty() or problem.isGoalState((current_node := fringe.pop()).state)):
+        if current_node in visited: # Check if current node is visted because we search on a graph
             continue
-
-        visited.append(current_node)
-
-        for successor, direction, cost in problem.getSuccessors(current_node.state):
-            next_node = ANode(successor)
-            next_node.previous = current_node
-            next_node.direction = direction
-            next_node.hcost = heuristic(next_node.state, problem)
-            next_node.gcost = current_node.gcost + cost
-            fringe.push(next_node, next_node.gcost + next_node.hcost)
-
-        if fringe.isEmpty():
-            break
-    else:
-        while current_node.previous is not None:
-            directions.insert(0, current_node.direction)
-            current_node = current_node.previous
-
-    return directions
+        visited.add(current_node)
+        for state, direction, cost in problem.getSuccessors(current_node.state):
+            next_node = ANode(state, current_node, direction, current_node.gcost + cost)
+            fringe.push(next_node, next_node.gcost + heuristic(state, problem)) # Add successors to the fringe
+    
+    # Reconstruct the path, if the last node is not the goal there is no solution
+    return current_node.construct_path() if problem.isGoalState(current_node.state) else []
 
 # Abbreviations
 bfs = breadthFirstSearch
