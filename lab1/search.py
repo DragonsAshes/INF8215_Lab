@@ -187,7 +187,7 @@ def uniformCostSearch(problem):
         visited.add(current_node)
         for state, direction, cost in problem.getSuccessors(current_node.state):
             next_node = ANode(state, current_node, direction, current_node.gcost + cost)
-            fringe.push(next_node, next_node.gcost) # Add successors to the fringe
+            fringe.push(next_node, next_node.gcost) # Add successors to the fringe with priority gcost
     
     # Reconstruct the path, if the last node is not the goal there is no solution
     return current_node.construct_path() if problem.isGoalState(current_node.state) else []
@@ -214,7 +214,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         visited.add(current_node)
         for state, direction, cost in problem.getSuccessors(current_node.state):
             next_node = ANode(state, current_node, direction, current_node.gcost + cost)
-            fringe.push(next_node, next_node.gcost + heuristic(state, problem)) # Add successors to the fringe
+            fringe.push(next_node, next_node.gcost + heuristic(state, problem)) # Add successors to the fringe with priority gcost+hcost
     
     # Reconstruct the path, if the last node is not the goal there is no solution
     return current_node.construct_path() if problem.isGoalState(current_node.state) else []
