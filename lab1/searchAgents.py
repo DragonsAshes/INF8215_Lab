@@ -461,6 +461,28 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     """
     position, foodGrid = state
 
+    if(problem.isGoalState(state)):
+        return 0
+
+    d = -1
+    old_d = -1
+    pos1 = (0,0)
+    pos2 = (0,0)
+    for food in foodGrid.asList():
+        for food2 in foodGrid.asList():
+            d = max(d, util.manhattanDistance(food, food2)) 
+            if old_d < d:
+                pos1 = food
+                pos2 = food2
+
+    d += min(util.manhattanDistance(position, pos1), util.manhattanDistance(position, pos2))
+
+
+    #d = -1
+    #for food in foodGrid.asList():
+    #    d = max(d, util.manhattanDistance(food, position))
+    #return max(util.manhattanDistance(food, position) for food in foodGrid.asList())
+    return d
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
