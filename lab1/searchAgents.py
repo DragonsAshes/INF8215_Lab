@@ -492,29 +492,6 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     return reald + min(util.manhattanDistance(position, pos1), util.manhattanDistance(position, pos2))
 
 
-    #d = -1
-    #for food in foodGrid.asList():
-    #    d = max(d, util.manhattanDistance(food, position))
-    #return max(util.manhattanDistance(food, position) for food in foodGrid.asList())
-    '''
-        INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
-    '''
-    """
-    # Magical raycasting and scan method to improve the heuristic
-    x,y = state[0]
-    max_inc = 0
-    for i in range(x, closest_corner[0]):
-        if walls[i][y]: # Found a wall on X axis
-            inc = 1
-            while (y+inc>=walls.height-1 or walls[i][y+inc]) and (y-inc<=0 or walls[i][y-inc]):
-                inc+=1
-            max_inc = max(max_inc, inc)
-    
-    y_dist = max_inc + 1
-#    return d+(max_inc+1)*2
-    """
-    return 0
-
 class SubSearchProblem(search.SearchProblem):
 
     def __init__(self, walls, start, goal):
