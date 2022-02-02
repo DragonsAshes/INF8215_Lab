@@ -43,6 +43,7 @@ from game import Actions
 import util
 import time
 import search
+import itertools
 
 class GoWestAgent(Agent):
     "An agent that goes West until it can't."
@@ -464,25 +465,37 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     if(problem.isGoalState(state)):
         return 0
 
-    d = -1
-    old_d = -1
+    ## Step 1: find the furthest food points in manhattan distance
+    maxd = -1
     pos1 = (0,0)
     pos2 = (0,0)
-    for food in foodGrid.asList():
-        for food2 in foodGrid.asList():
-            d = max(d, util.manhattanDistance(food, food2)) 
-            if old_d < d:
-                pos1 = food
-                pos2 = food2
+    for food1, food2 in itertools.combinations(foodGrid.asList(), 2):
+        d = util.manhattanDistance(food1, food2) 
+        if d > maxd:
+            maxd, pos1, pos2 = d, food1, food2
 
-    d += min(util.manhattanDistance(position, pos1), util.manhattanDistance(position, pos2))
+    ## If there is only one food point left, return distance between the node and that food point
+    if maxd == -1: # One or less food left
+        return util.manhattanDistance(position, foodGrid.asList()[0])
+
+    ## Step 2: Find the actual distance between the furthest food points using A* (simple A* search for the shortest path in a graph)
+    ## We can store that value since food doesn't move, and reuse it for other nodes to avoid doing too many A*. We'll do at most 2 choose n astar is n is the number of food points, so 78 A* for 13 food points which is reasonable
+    key = hash((pos1, pos2))
+    if key in problem.heuristicInfo:
+        reald = problem.heuristicInfo[key]
+    else:
+        subProblem = SubSearchProblem(problem.walls, pos1, pos2)
+        path = search.aStarSearch(subProblem, heuristic=manhattanHeuristic)
+        reald = len(path)
+        problem.heuristicInfo[key] = reald
+
+    return reald + min(util.manhattanDistance(position, pos1), util.manhattanDistance(position, pos2))
 
 
     #d = -1
     #for food in foodGrid.asList():
     #    d = max(d, util.manhattanDistance(food, position))
     #return max(util.manhattanDistance(food, position) for food in foodGrid.asList())
-    return d
     '''
         INSÉREZ VOTRE SOLUTION À LA QUESTION 7 ICI
     '''
@@ -502,5 +515,28 @@ def foodHeuristic(state, problem: FoodSearchProblem):
     """
     return 0
 
+class SubSearchProblem(search.SearchProblem):
 
+    def __init__(self, walls, start, goal):
+        self.walls = walls
+        self.startState = start
+        self.goal = goal
+
+    def getStartState(self):
+        return self.startState
+
+    def isGoalState(self, state):
+        return state == self.goal
+
+    def getSuccessors(self, state):
+        successors = []
+        for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
+            x,y = state
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            if not self.walls[nextx][nexty]:
+                nextState = (nextx, nexty)
+                successors.append(( nextState, action, 1))
+
+        return successors
 
