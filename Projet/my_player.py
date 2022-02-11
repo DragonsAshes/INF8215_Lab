@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Quoridor agent.
-Copyright (C) 2013, <<<<<<<<<<< YOUR NAMES HERE >>>>>>>>>>>
+Copyright (C) 2013, DragonsAshes & g33kex 
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -19,10 +19,22 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 
 from quoridor import *
 
+import math
+
+infinity = math.inf
+
 
 class MyAgent(Agent):
 
     """My Quoridor agent."""
+
+    def is_terminal(state):
+        return state['pawns'][0][0] == 8 or state['pawns'][1][0] == 0
+
+    def utility(state, player):
+        assert is_terminal(state), "Utility can only be computed for a terminal state."
+        return 1 if state['pawns'][player][0] == 8*(1-player) else -1
+
 
     def play(self, percepts, player, step, time_left):
         """
@@ -45,10 +57,48 @@ class MyAgent(Agent):
         print("player:", player)
         print("step:", step)
         print("time left:", time_left if time_left else '+inf')
+  #      if step==1:
+  #          return ('WH', 5, 4)
 
-        # TODO: implement your agent and return an action for the current step.
-        pass
+        state = dict_to_board(percepts)
 
+        max_depth = 1
+
+        def max_value(state, alpha, beta, depth):
+            if state.is_finished():
+                return (state.get_score(player), (0,0))
+            if depth >= max_depth:
+                return (heuristic(state, player), (0,0))
+            values = []
+            for action in state.get_actions(player):
+                values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
+                if (alpha := min(alpha, values[-1][0]))>beta:
+                    return (values[-1][0], action)
+   
+            m = max(values)
+            print("Max = ", m)
+            return m
+    
+        def min_value(state, alpha, beta, depth):
+            if state.is_finished():
+                return (state.get_score(player), (0,0))
+            if depth >= max_depth:
+                return (heuristic(state, player), (0,0))
+            values = []
+            for action in state.get_actions(1-player): 
+                values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
+                if alpha>(beta := max(beta, values[-1][0])):
+                    return (values[-1][0], action)
+    
+            m = min(values)
+            print("Min = ", m)
+            return m
+    
+        return max_value(state, -infinity, +infinity, 0)[1]
+
+
+def heuristic(state, player):
+    return state.get_score(player)
 
 if __name__ == "__main__":
     agent_main(MyAgent())
