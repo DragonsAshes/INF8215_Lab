@@ -20,6 +20,8 @@ along with this program; if not, see <http://www.gnu.org/licenses/>.
 from quoridor import *
 
 import math
+import random
+from operator import itemgetter
 
 infinity = math.inf
 
@@ -62,43 +64,44 @@ class MyAgent(Agent):
 
         state = dict_to_board(percepts)
 
-        max_depth = 1
+        max_depth = 2
+
+        def heuristic(state):
+            return state.get_score(player)
 
         def max_value(state, alpha, beta, depth):
             if state.is_finished():
                 return (state.get_score(player), (0,0))
             if depth >= max_depth:
-                return (heuristic(state, player), (0,0))
+                return (heuristic(state), (0,0))
             values = []
-            for action in state.get_actions(player):
+            actions = state.get_actions(player)
+            random.shuffle(actions)
+            for action in actions:
                 values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
                 if (alpha := min(alpha, values[-1][0]))>beta:
                     return (values[-1][0], action)
    
-            m = max(values)
-            print("Max = ", m)
-            return m
+            return max(values, key=itemgetter(0))
     
         def min_value(state, alpha, beta, depth):
             if state.is_finished():
                 return (state.get_score(player), (0,0))
             if depth >= max_depth:
-                return (heuristic(state, player), (0,0))
+                return (heuristic(state), (0,0))
             values = []
-            for action in state.get_actions(1-player): 
+            actions = state.get_actions(1-player)
+            random.shuffle(actions)
+            for action in actions: 
                 values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
                 if alpha>(beta := max(beta, values[-1][0])):
                     return (values[-1][0], action)
     
-            m = min(values)
-            print("Min = ", m)
-            return m
+            return min(values, key=itemgetter(0))
     
         return max_value(state, -infinity, +infinity, 0)[1]
 
 
-def heuristic(state, player):
-    return state.get_score(player)
 
 if __name__ == "__main__":
     agent_main(MyAgent())
