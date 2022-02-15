@@ -69,6 +69,10 @@ class MyAgent(Agent):
         def heuristic(state):
             return state.get_score(player)
 
+        def move_heuristic(action):
+            return 0 if action[1] == 'P' else 1
+
+
         def max_value(state, alpha, beta, depth):
             if state.is_finished():
                 return (state.get_score(player), (0,0))
@@ -77,6 +81,7 @@ class MyAgent(Agent):
             values = []
             actions = state.get_actions(player)
             random.shuffle(actions)
+            actions.sort(key=move_heuristic)
             for action in actions:
                 values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
                 if (alpha := min(alpha, values[-1][0]))>beta:
