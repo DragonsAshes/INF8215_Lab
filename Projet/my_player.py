@@ -59,18 +59,33 @@ class MyAgent(Agent):
         print("player:", player)
         print("step:", step)
         print("time left:", time_left if time_left else '+inf')
-  #      if step==1:
-  #          return ('WH', 5, 4)
-
+        '''
+        if step==1:
+            return ('WH', 5, 3)
+        if step==2:
+            return ('WH', 3, 3)
+        if step == 3:
+            return('WH', 5, 5)
+        if step ==4:
+            return('WH', 3, 5)
+'''
         state = dict_to_board(percepts)
 
         max_depth = 2
 
-        def heuristic(state):
-            return state.get_score(player)
+        def heuristic_wall(state):
+            return state.min_steps_before_victory(1-player)
+
+        def heuristic_move(state):
+            return -state.min_steps_before_victory(player)
 
         def move_heuristic(action):
             return 0 if action[1] == 'P' else 1
+        
+        if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
+            heuristic = heuristic_move
+        else:
+            heuristic = heuristic_wall
 
 
         def max_value(state, alpha, beta, depth):
@@ -80,6 +95,7 @@ class MyAgent(Agent):
                 return (heuristic(state), (0,0))
             values = []
             actions = state.get_actions(player)
+            #actions = state.get_legal_wall_moves(player)
             random.shuffle(actions)
             actions.sort(key=move_heuristic)
             for action in actions:
@@ -96,6 +112,7 @@ class MyAgent(Agent):
                 return (heuristic(state), (0,0))
             values = []
             actions = state.get_actions(1-player)
+            #actions = state.get_legal_wall_moves(1-player)
             random.shuffle(actions)
             for action in actions: 
                 values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
