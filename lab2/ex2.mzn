@@ -28,7 +28,40 @@ array[1..n] of var 0..100: married;
 
 % <A COMPLETER>
 
+constraint married[F[Juliette]] < married[M[Charles]];
+constraint married[F[Juliette]] < married[Tremblay];
+constraint married[M[Charles]] != married[Tremblay];
+
+constraint married[F[Juliette]] > married[M[David]];
+constraint married[F[Juliette]] > married[Dupont];
+constraint married[M[David]] != married[Dupont];
+
+constraint married[F[Elisabeth]] = 2 * married[Durand];
+constraint 2 * married[F[Elisabeth]] = married[M[Remy]];
+
+constraint married[Petit] = married[M[Pierre]] + 10;
+constraint married[Petit] = married[F[Maria]] - 10;
+
+constraint married[M[David]] = married[Gagnon] - 25;
+constraint married[M[David]] = married[F[Manon]];
+
+constraint married[Gagnon] = 30;
+constraint arg_max(married) = Gagnon;
+
+constraint arg_min(married) != F[Emilie];
+constraint arg_min(married) != Dupont;
+
+constraint married[M[Edouard]] = 25;
+
+constraint alldifferent(married);
+
+solve satisfy;
+
 output [
+  "print arrays element per element :\n",
+  "M: ", show(M[Remy]), ", ", show(M[David]), ", ", show(M[Charles]), ", ", show(M[Pierre]), ", ", show(M[Edouard]) , "\n",
+  "F: ", show(F[Emilie]), ", ", show(F[Juliette]), ", ", show(F[Maria]), ", ", show(F[Elisabeth]), ", ", show(F[Manon]) , "\n",
+  "print arrays with default print : \n",
   "M: ", show(M), "\n",
   "F: ", show(F), "\n",
   "married : ", show(married), "\n",

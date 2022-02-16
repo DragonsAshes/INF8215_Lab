@@ -1,7 +1,6 @@
 %-Carres-
 
 include "globals.mzn";
-include "alldifferent.mzn";
 
 array[1..5] of var 10..100: x;
 
