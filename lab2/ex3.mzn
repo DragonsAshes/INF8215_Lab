@@ -9,9 +9,17 @@ int: S;%nombre de sous-traitants
 int: N;%nombre de tâches
 int: T;%horizon temporel, en jours
 
-% array[<A COMPLETER>] of var <A COMPLETER>: x;
+array[1..N] of var 1..S: x;
 
-% var int: C = <A COMPLETER>;
+var int: C = sum([cost[i, x[i]] | i in 1..N]);
+
+constraint forall(i in 2..N)( x[i] != x[1]);
+constraint forall(i in 3..N)( x[i] != x[2]);
+
+constraint max([sum([duration[i, s] | i in 1..N where x[i] = s]) | s in 1..S]) <= T;
+
+
+solve minimize C;
 
 % <A COMPLETER>
 

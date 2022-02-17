@@ -71,7 +71,12 @@ class MyAgent(Agent):
 '''
         state = dict_to_board(percepts)
 
-        max_depth = 2
+        max_depth = 1
+
+        if step > 30:
+            max_depth = 2
+        if step > 40: 
+            max_depth = 3
 
         def heuristic_wall(state):
             return state.min_steps_before_victory(1-player)
