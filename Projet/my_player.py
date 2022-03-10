@@ -25,6 +25,131 @@ from operator import itemgetter
 
 infinity = math.inf
 
+import time
+from functools import wraps
+
+times = {}
+occurences = {}
+def timeit(my_func):
+    @wraps(my_func)
+    def timed(*args, **kw):
+        name = my_func.__name__
+
+        tstart = time.time()
+        output = my_func(*args, **kw)
+        tend = time.time()
+
+        deltat = 1000*(tend-tstart)
+        times[name] = times.get(name, 0) + deltat
+        occurences[name] = occurences.get(name, 0) + 1
+
+        print('"{}" took {:.3f} ms to execute ({:.2f} ms average)\n'.format(name, deltat, times[name]/occurences[name]))
+        return output
+    return timed
+
+class MyBoard(Board):
+    @timeit
+    def get_legal_pawn_moves(self, player):
+        """Returns legal moves for the pawn of player."""
+        (x, y) = self.pawns[player]
+        positions = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1),
+        (x + 1, y + 1), (x - 1, y - 1), (x + 1, y - 1), (x - 1, y + 1),
+        (x + 2, y), (x - 2, y), (x, y + 2), (x, y - 2)]
+        moves = []
+        for new_pos in positions:
+            if self.is_pawn_move_ok(self.pawns[player], new_pos,
+                self.pawns[(player + 1) % 2]):
+                moves.append(('P', new_pos[0], new_pos[1]))
+        return moves
+
+    @timeit
+    def get_legal_wall_moves(self, player):
+        """Returns legal wall placements (adding a wall
+        somewhere) for player.
+        """
+        positions = []
+        moves = []
+        if self.nb_walls[player] <= 0:
+            return moves
+        for i in range(self.size - 1):
+            for j in range(self.size - 1):
+                positions.append((i, j))
+        for pos in positions:
+            if self.is_wall_possible_here(pos, True):
+                moves.append(('WH', pos[0], pos[1]))
+            if self.is_wall_possible_here(pos, False):
+                moves.append(('WV', pos[0], pos[1]))
+        return moves
+
+    def is_wall_possible_here(self, pos, is_horiz):
+        """
+        Returns True if it is possible to put a wall in position pos
+        with direction specified by is_horiz.
+        """
+        (x, y) = pos
+        if x >= self.size - 1 or x < 0 or y >= self.size - 1 or y < 0:
+            return False
+        if not (tuple(pos) in self.horiz_walls or
+                tuple(pos) in self.verti_walls):
+            wall_horiz_right = (x, y + 1) in self.horiz_walls
+            wall_horiz_left = (x, y - 1) in self.horiz_walls
+            wall_vert_up = (x - 1, y) in self.verti_walls
+            wall_vert_down = (x + 1, y) in self.verti_walls
+
+            if is_horiz:
+                if wall_horiz_right or wall_horiz_left:
+                    return False
+                self.horiz_walls.append(tuple(pos))
+                if not self.paths_exist():
+                    a = self.horiz_walls.pop()
+                    return False
+                self.horiz_walls.pop()
+                return True
+            else:
+                if wall_vert_up or wall_vert_down:
+                    return False
+                self.verti_walls.append(tuple(pos))
+                if not self.paths_exist():
+                    a = self.verti_walls.pop()
+                    return False
+                self.verti_walls.pop()
+                return True
+        else:
+            return False
+
+
+    def get_actions(self, player):
+        """ Returns all the possible actions for player."""
+        pawn_moves = self.get_legal_pawn_moves(player)
+        wall_moves = self.get_legal_wall_moves(player)
+        pawn_moves.extend(wall_moves)
+        return pawn_moves
+
+    def clone(self):
+        """Return a clone of this object."""
+        clone_board = MyBoard()
+        clone_board.pawns[0] = self.pawns[0]
+        clone_board.pawns[1] = self.pawns[1]
+        clone_board.goals[0] = self.goals[0]
+        clone_board.goals[1] = self.goals[1]
+        clone_board.nb_walls[0] = self.nb_walls[0]
+        clone_board.nb_walls[1] = self.nb_walls[1]
+        for (x, y) in self.horiz_walls:
+            clone_board.horiz_walls.append((x, y))
+        for (x, y) in self.verti_walls:
+            clone_board.verti_walls.append((x, y))
+        return clone_board
+
+    def play_action(self, action, player):
+        """Play an action"""
+        kind, x, y = action
+        if kind == 'WH':
+            self.add_wall((x, y), True, player)
+        elif kind == 'WV':
+            self.add_wall((x, y), False, player)
+        elif kind == 'P':
+            self.move_pawn((x, y), player)
+        return self
 
 class MyAgent(Agent):
 
@@ -69,14 +194,14 @@ class MyAgent(Agent):
         if step ==4:
             return('WH', 3, 5)
 '''
-        state = dict_to_board(percepts)
+        state = MyBoard(dict_to_board(percepts))
 
         max_depth = 1
 
-        if step > 30:
-            max_depth = 2
-        if step > 40: 
-            max_depth = 3
+        # if step > 30:
+        #     max_depth = 2
+        # if step > 40:
+        #     max_depth = 3
 
         def heuristic_wall(state):
             return state.min_steps_before_victory(1-player)
@@ -126,7 +251,9 @@ class MyAgent(Agent):
     
             return min(values, key=itemgetter(0))
     
-        return max_value(state, -infinity, +infinity, 0)[1]
+        move = max_value(state, -infinity, +infinity, 0)[1]
+        print(move)
+        return move
 
 
 
