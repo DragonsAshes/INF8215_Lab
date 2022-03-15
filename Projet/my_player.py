@@ -97,6 +97,13 @@ class MyBoard(Board):
             wall_vert_down = (x + 1, y) in self.verti_walls
 
             if is_horiz:
+                adjacent_vert = [(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x+1, y-1), (x+1, y), (x+1, y+1), (x, y+1)]
+                adjacent_horiz = [(x, y-2), (x, y+2)]
+            else:
+                adjacent_vert = [(x-2, y), (x+2, y)]
+                adjacent_horiz = [(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x, y+1), (x+1, y+1), (x+1, y), (x+1, y+1)]
+
+            if is_horiz:
                 if wall_horiz_right or wall_horiz_left:
                     return False
                 self.horiz_walls.append(tuple(pos))
@@ -203,6 +210,13 @@ class MyAgent(Agent):
         # if step > 40:
         #     max_depth = 3
 
+
+        def diff_walls(percepts):
+            for walls in percepts['horiz_walls']:
+                print("cazou")
+
+
+
         def heuristic_wall(state):
             return state.min_steps_before_victory(1-player)
 
@@ -251,6 +265,7 @@ class MyAgent(Agent):
     
             return min(values, key=itemgetter(0))
     
+        diff_walls(percepts)
         move = max_value(state, -infinity, +infinity, 0)[1]
         print(move)
         return move
