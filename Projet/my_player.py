@@ -48,7 +48,7 @@ def timeit(my_func):
     return timed
 
 class MyBoard(Board):
-    @timeit
+    #@timeit
     def get_legal_pawn_moves(self, player):
         """Returns legal moves for the pawn of player."""
         (x, y) = self.pawns[player]
@@ -113,7 +113,7 @@ class MyBoard(Board):
             if wall_vert_up or wall_vert_down:
                 return False
             adjacent_vert = {(x-2, y), (x+2, y)}
-            adjacent_horiz = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x, y+1), (x+1, y+1), (x+1, y), (x+1, y+1)}
+            adjacent_horiz = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x, y+1), (x+1, y-1), (x+1, y), (x+1, y+1)}
             if adjacent_vert.intersection(verti_walls) or adjacent_horiz.intersection(horiz_walls):
                 self.verti_walls.append(tuple(pos))
                 if not self.paths_exist():
