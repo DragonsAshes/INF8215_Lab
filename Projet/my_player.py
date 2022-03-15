@@ -62,7 +62,7 @@ class MyBoard(Board):
                 moves.append(('P', new_pos[0], new_pos[1]))
         return moves
 
-    @timeit
+    #@timeit
     def get_legal_wall_moves(self, player):
         """Returns legal wall placements (adding a wall
         somewhere) for player.
@@ -89,41 +89,39 @@ class MyBoard(Board):
         (x, y) = pos
         if x >= self.size - 1 or x < 0 or y >= self.size - 1 or y < 0:
             return False
-        if not (tuple(pos) in self.horiz_walls or
-                tuple(pos) in self.verti_walls):
-            wall_horiz_right = (x, y + 1) in self.horiz_walls
-            wall_horiz_left = (x, y - 1) in self.horiz_walls
-            wall_vert_up = (x - 1, y) in self.verti_walls
-            wall_vert_down = (x + 1, y) in self.verti_walls
+        horiz_walls = set(self.horiz_walls)
+        verti_walls = set(self.verti_walls)
+        if (tuple(pos) in horiz_walls or tuple(pos) in verti_walls):
+            return False
+        wall_horiz_right = (x, y + 1) in horiz_walls
+        wall_horiz_left = (x, y - 1) in horiz_walls
+        wall_vert_up = (x - 1, y) in verti_walls
+        wall_vert_down = (x + 1, y) in verti_walls
 
-            if is_horiz:
-                adjacent_vert = [(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x+1, y-1), (x+1, y), (x+1, y+1), (x, y+1)]
-                adjacent_horiz = [(x, y-2), (x, y+2)]
-            else:
-                adjacent_vert = [(x-2, y), (x+2, y)]
-                adjacent_horiz = [(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x, y+1), (x+1, y+1), (x+1, y), (x+1, y+1)]
-
-            if is_horiz:
-                if wall_horiz_right or wall_horiz_left:
-                    return False
+        if is_horiz:
+            if wall_horiz_right or wall_horiz_left:
+                return False
+            adjacent_vert = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x+1, y-1), (x+1, y), (x+1, y+1), (x, y+1)}
+            adjacent_horiz = {(x, y-2), (x, y+2)}
+            if adjacent_vert.intersection(verti_walls) or adjacent_horiz.intersection(horiz_walls):
                 self.horiz_walls.append(tuple(pos))
                 if not self.paths_exist():
                     a = self.horiz_walls.pop()
                     return False
                 self.horiz_walls.pop()
-                return True
-            else:
-                if wall_vert_up or wall_vert_down:
-                    return False
+        else:
+            if wall_vert_up or wall_vert_down:
+                return False
+            adjacent_vert = {(x-2, y), (x+2, y)}
+            adjacent_horiz = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x, y+1), (x+1, y+1), (x+1, y), (x+1, y+1)}
+            if adjacent_vert.intersection(verti_walls) or adjacent_horiz.intersection(horiz_walls):
                 self.verti_walls.append(tuple(pos))
                 if not self.paths_exist():
                     a = self.verti_walls.pop()
                     return False
                 self.verti_walls.pop()
-                return True
-        else:
-            return False
 
+        return True
 
     def get_actions(self, player):
         """ Returns all the possible actions for player."""
@@ -203,18 +201,12 @@ class MyAgent(Agent):
 '''
         state = MyBoard(dict_to_board(percepts))
 
-        max_depth = 1
+        max_depth = 2
 
         # if step > 30:
         #     max_depth = 2
         # if step > 40:
         #     max_depth = 3
-
-
-        def diff_walls(percepts):
-            for walls in percepts['horiz_walls']:
-                print("cazou")
-
 
 
         def heuristic_wall(state):
@@ -265,7 +257,6 @@ class MyAgent(Agent):
     
             return min(values, key=itemgetter(0))
     
-        diff_walls(percepts)
         move = max_value(state, -infinity, +infinity, 0)[1]
         print(move)
         return move
