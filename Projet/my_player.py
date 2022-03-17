@@ -201,7 +201,7 @@ class MyAgent(Agent):
 '''
         state = MyBoard(dict_to_board(percepts))
 
-        max_depth = 2
+        max_depth = 3
 
         # if step > 30:
         #     max_depth = 2
@@ -235,9 +235,10 @@ class MyAgent(Agent):
             random.shuffle(actions)
             actions.sort(key=move_heuristic)
             for action in actions:
-                values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
-                if (alpha := min(alpha, values[-1][0]))>beta:
-                    return (values[-1][0], action)
+                if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
+                    values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
+                    if (alpha := min(alpha, values[-1][0]))>beta:
+                        return (values[-1][0], action)
    
             return max(values, key=itemgetter(0))
     
@@ -251,9 +252,11 @@ class MyAgent(Agent):
             #actions = state.get_legal_wall_moves(1-player)
             random.shuffle(actions)
             for action in actions: 
-                values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
-                if alpha>(beta := max(beta, values[-1][0])):
-                    return (values[-1][0], action)
+                                
+                if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][0][0]) + abs(action[2] - percepts['pawns'][0][1])) <= 2)):
+                    values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
+                    if alpha>(beta := max(beta, values[-1][0])):
+                        return (values[-1][0], action)
     
             return min(values, key=itemgetter(0))
     
