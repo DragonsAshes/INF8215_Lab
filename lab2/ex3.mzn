@@ -1,3 +1,6 @@
+% Retault Virgile : 2164296
+% Foucher Sebastien : 2162248
+
 %-Attribution de taches-
 
 include "globals.mzn";
@@ -27,3 +30,8 @@ output [
   "x: ", show(x), "\n",
   "Cost: ", show(C)]
 ;
+
+%output : x: [10, 7, 6, 3, 3, 2, 9, 4, 6, 5, 5, 8, 3, 5, 4, 1, 1, 9, 2, 8, 8, 6, 4, 1, 2]
+%         Cost: 2304
+
+% Execution avec la version 2.5.5 de MinizincIDE

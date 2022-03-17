@@ -1,3 +1,6 @@
+% Retault Virgile : 2164296
+% Foucher Sebastien : 2162248
+
 %-Carres-
 
 include "globals.mzn";
@@ -13,3 +16,5 @@ solve minimize x[5];
 output [
   show(x)
 ];
+
+% output : [14, 12, 17, 10, 27]

@@ -1,3 +1,6 @@
+% Retault Virgile : 2164296
+% Foucher Sebastien : 2162248
+
 %-Enigme des mariages-
 
 include "globals.mzn"; 
@@ -63,3 +66,7 @@ output [
   "married : ", show(married), "\n",
 ]
 ;
+
+% output : M: [5, 3, 4, 1, 2]
+%          F: [2, 5, 4, 1, 3]
+%          married : [10, 25, 5, 30, 20]

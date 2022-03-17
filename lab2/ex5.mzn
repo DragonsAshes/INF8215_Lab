@@ -31,6 +31,9 @@ constraint forall(t in 1..T) (
 constraint all_different_exclude_zero([x[t, g, 1]+100*x[t,g,2]+2000*x[t,g,3]+40000*x[t,g,4] | g in 1..G, t in 1..T]);
 
   
+% Retault Virgile : 2164296
+% Foucher Sebastien : 2162248
+
 %Chaque joueur doit avoir fait entre 8 et 11 matchs
 array[int] of var int: l = [sum([1 | g in 1..G, t in 1..T, j in 1..4 where x[t,g,j] = p]) | p in 1..P];
 constraint forall(a in l) (
@@ -82,3 +85,20 @@ output
     "\n"++show(x[i,1,1])++" "++show(x[i,1,2])++" "++show(x[i,1,3])++" "++show(x[i,1,4])++" \t"++show(x[i,2,1])++" "++show(x[i,2,2])++" "++show(x[i,2,3])++" "++show(x[i,2,4])
   | i in 1..T
 ]
+
+%  Site 1 	 Site 2
+
+% 1 11 12 13 	2 4 6 10
+% 9 11 12 13 	3 5 6 8
+% 1 2 4 9 	6 7 8 10
+% 2 4 5 9 	7 11 12 13
+% 4 5 6 8 	1 3 7 10
+% 5 11 12 13 	1 2 9 10
+% 8 11 12 13 	1 3 6 7
+% 2 8 9 10 	3 4 5 7
+% 1 6 9 10 	3 11 12 13
+% 1 5 8 10 	2 11 12 13
+% 3 7 8 10 	4 11 12 13
+% 2 7 8 9 	1 4 5 6
+% 10 11 12 13 	1 3 4 5
+% 6 11 12 13 	2 3 7 9
