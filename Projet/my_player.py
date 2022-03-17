@@ -27,6 +27,7 @@ infinity = math.inf
 
 import time
 from functools import wraps
+from functools import partial
 
 times = {}
 occurences = {}
@@ -215,8 +216,12 @@ class MyAgent(Agent):
         def heuristic_move(state):
             return -state.min_steps_before_victory(player)
 
-        def move_heuristic(action):
-            return 0 if action[1] == 'P' else 1
+        def move_heuristic(p, action):
+          #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
+          if action[0][0] == 'P':
+              return -1
+          return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
+
         
         if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
             heuristic = heuristic_move
@@ -233,14 +238,17 @@ class MyAgent(Agent):
             actions = state.get_actions(player)
             #actions = state.get_legal_wall_moves(player)
             random.shuffle(actions)
-            actions.sort(key=move_heuristic)
+            actions.sort(key=partial(move_heuristic, player))
+            actions = actions[:10]
             for action in actions:
-                if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
-                    values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
-                    if (alpha := min(alpha, values[-1][0]))>beta:
-                        return (values[-1][0], action)
+                #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
+                values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
+                if (alpha := min(alpha, values[-1][0]))>beta:
+                    return (values[-1][0], action)
    
-            return max(values, key=itemgetter(0))
+            result = max(values, key=itemgetter(0))
+            print("MAX:", result)
+            return result
     
         def min_value(state, alpha, beta, depth):
             if state.is_finished():
@@ -251,14 +259,18 @@ class MyAgent(Agent):
             actions = state.get_actions(1-player)
             #actions = state.get_legal_wall_moves(1-player)
             random.shuffle(actions)
+            actions.sort(key=partial(move_heuristic, 1-player))
+            actions = actions[:10]
             for action in actions: 
                                 
-                if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][0][0]) + abs(action[2] - percepts['pawns'][0][1])) <= 2)):
-                    values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
-                    if alpha>(beta := max(beta, values[-1][0])):
-                        return (values[-1][0], action)
+                #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][0][0]) + abs(action[2] - percepts['pawns'][0][1])) <= 2)):
+                values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
+                if alpha>(beta := max(beta, values[-1][0])):
+                    return (values[-1][0], action)
     
-            return min(values, key=itemgetter(0))
+            result = min(values, key=itemgetter(0))
+            print("MIN:", result)
+            return result
     
         move = max_value(state, -infinity, +infinity, 0)[1]
         print(move)
