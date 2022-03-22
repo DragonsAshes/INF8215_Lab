@@ -52,7 +52,7 @@ class MyBoard(Board):
 
     def __init__(self, *args, **kw):
         super().__init__(*args, **kw)
-        self.interesting_walls = []
+        self.interesting_walls = set()
 
     #@timeit
     def get_legal_pawn_moves(self, player):
@@ -118,8 +118,8 @@ class MyBoard(Board):
         else:
             if wall_vert_up or wall_vert_down:
                 return False
-            adjacent_vert = {(x-2, y), (x+2, y)}
-            adjacent_horiz = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x, y+1), (x+1, y-1), (x+1, y), (x+1, y+1)}
+            adjacent_horiz = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x+1, y-1), (x+1, y), (x+1, y+1), (x, y+1)}
+            adjacent_vert = {(x, y-2), (x, y+2)}
             if adjacent_vert.intersection(verti_walls) or adjacent_horiz.intersection(horiz_walls):
                 self.verti_walls.append(tuple(pos))
                 if not self.paths_exist():
@@ -145,6 +145,7 @@ class MyBoard(Board):
         clone_board.goals[1] = self.goals[1]
         clone_board.nb_walls[0] = self.nb_walls[0]
         clone_board.nb_walls[1] = self.nb_walls[1]
+        clone_board.interesting_walls = self.interesting_walls
         for (x, y) in self.horiz_walls:
             clone_board.horiz_walls.append((x, y))
         for (x, y) in self.verti_walls:
@@ -156,16 +157,16 @@ class MyBoard(Board):
         kind, x, y = action
         if kind == 'WH':
             self.add_wall((x, y), True, player)
-            adjacent_vert = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x+1, y-1), (x+1, y), (x+1, y+1), (x, y+1)}
-            adjacent_horiz = {(x, y-2), (x, y+2)}
-            self.interesting_walls += adjacent_vert
-            self.interesting_walls += adjacent_horiz
+            adjacent_horiz = {("WH", x-2, y), ("WH", x+2, y)}
+            adjacent_vert = {("WV", x-1, y-1), ("WV", x-1, y), ("WV", x-1, y+1), ("WV", x, y-1), ("WV", x, y+1), ("WV", x+1, y-1), ("WV", x+1, y), ("WV", x+1, y+1)}
+            self.interesting_walls |= adjacent_vert
+            self.interesting_walls |= adjacent_horiz
         elif kind == 'WV':
             self.add_wall((x, y), False, player)
-            adjacent_vert = {(x-2, y), (x+2, y)}
-            adjacent_horiz = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x, y+1), (x+1, y-1), (x+1, y), (x+1, y+1)}
-            self.interesting_walls += adjacent_vert
-            self.interesting_walls += adjacent_horiz
+            adjacent_vert = {("WV", x-2, y), ("WV", x+2, y)}
+            adjacent_horiz = {("WH", x-1, y-1), ("WH", x-1, y), ("WH", x-1, y+1), ("WH", x, y-1), ("WH", x, y+1), ("WH", x+1, y-1), ("WH", x+1, y), ("WH", x+1, y+1)}
+            self.interesting_walls |= adjacent_vert
+            self.interesting_walls |= adjacent_horiz
         elif kind == 'P':
             self.move_pawn((x, y), player)
         return self
@@ -230,12 +231,11 @@ class MyAgent(Agent):
             #return -state.min_steps_before_victory(player)
 
         def move_heuristic(p, action):
-          #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
           if action[0] == 'P':
               return -1
           if action in state.interesting_walls :
             return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
-          return 2 * (abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
+          return 2*(abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
           
 
         
@@ -260,7 +260,12 @@ class MyAgent(Agent):
             actions.sort(key=partial(move_heuristic, player))
             actions = actions[:20]
             for action in actions:
+
                 #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
+                # print("Trying to play action", action)
+                # print("Possible actions:", actions)
+                # print("Horiz Walls:", state.horiz_walls)
+                # print("Verti Walls:", state.verti_walls)
                 values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
                 if (alpha := min(alpha, values[-1][0]))>beta:
                     return (values[-1][0], action)
@@ -283,6 +288,10 @@ class MyAgent(Agent):
             for action in actions: 
                                 
                 #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][0][0]) + abs(action[2] - percepts['pawns'][0][1])) <= 2)):
+                # print("Trying to play action", action)
+                # print("Possible actions:", actions)
+                # print("Horiz Walls:", state.horiz_walls)
+                # print("Verti Walls:", state.verti_walls)
                 values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
                 if alpha>(beta := max(beta, values[-1][0])):
                     return (values[-1][0], action)
