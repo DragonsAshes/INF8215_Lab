@@ -233,7 +233,9 @@ class MyAgent(Agent):
           #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
           if action[0][0] == 'P':
               return -1
-          distance_to_player = abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
+          if action[0] in interesting_walls :
+            return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
+          return 2 * (abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
           
 
         
