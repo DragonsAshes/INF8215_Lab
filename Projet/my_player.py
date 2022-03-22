@@ -239,7 +239,7 @@ class MyAgent(Agent):
             #actions = state.get_legal_wall_moves(player)
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, player))
-            actions = actions[:10]
+            actions = actions[:20]
             for action in actions:
                 #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
                 values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
@@ -247,7 +247,7 @@ class MyAgent(Agent):
                     return (values[-1][0], action)
    
             result = max(values, key=itemgetter(0))
-            print("MAX:", result)
+           # print("MAX:", result)
             return result
     
         def min_value(state, alpha, beta, depth):
@@ -260,7 +260,7 @@ class MyAgent(Agent):
             #actions = state.get_legal_wall_moves(1-player)
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, 1-player))
-            actions = actions[:10]
+            actions = actions[:20]
             for action in actions: 
                                 
                 #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][0][0]) + abs(action[2] - percepts['pawns'][0][1])) <= 2)):
@@ -269,7 +269,7 @@ class MyAgent(Agent):
                     return (values[-1][0], action)
     
             result = min(values, key=itemgetter(0))
-            print("MIN:", result)
+           # print("MIN:", result)
             return result
     
         move = max_value(state, -infinity, +infinity, 0)[1]
