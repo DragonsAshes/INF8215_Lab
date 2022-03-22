@@ -152,6 +152,7 @@ class MyBoard(Board):
             clone_board.verti_walls.append((x, y))
         return clone_board
 
+    @timeit
     def play_action(self, action, player):
         """Play an action"""
         kind, x, y = action
@@ -230,12 +231,14 @@ class MyAgent(Agent):
         #def heuristic_move(state):
             #return -state.min_steps_before_victory(player)
 
+        @timeit
         def move_heuristic(p, action):
           if action[0] == 'P':
-              return -1
+              return 1 
           if action in state.interesting_walls :
-            return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
-          return 2*(abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
+            return 2+abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
+          #return 2*(abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
+          return 0
           
 
         
@@ -254,8 +257,7 @@ class MyAgent(Agent):
             if depth >= max_depth:
                 return (heuristic(state), (0,0))
             values = []
-            actions = state.get_actions(player)
-            #actions = state.get_legal_wall_moves(player)
+            actions = list(filter(partial(move_heuristic, player), state.get_actions(player)))
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, player))
             actions = actions[:20]
@@ -280,8 +282,7 @@ class MyAgent(Agent):
             if depth >= max_depth:
                 return (heuristic(state), (0,0))
             values = []
-            actions = state.get_actions(1-player)
-            #actions = state.get_legal_wall_moves(1-player)
+            actions = list(filter(partial(move_heuristic, 1-player), state.get_actions(1-player)))
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, 1-player))
             actions = actions[:20]
