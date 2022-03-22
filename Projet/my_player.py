@@ -226,23 +226,26 @@ class MyAgent(Agent):
         def heuristic_wall(state):
             return state.min_steps_before_victory(1-player)
 
-        def heuristic_move(state):
-            return -state.min_steps_before_victory(player)
+        #def heuristic_move(state):
+            #return -state.min_steps_before_victory(player)
 
         def move_heuristic(p, action):
           #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
-          if action[0][0] == 'P':
+          if action[0] == 'P':
               return -1
-          if action[0] in state.interesting_walls :
+          if action in state.interesting_walls :
             return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
           return 2 * (abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
           
 
         
         if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
-            heuristic = heuristic_move
-        else:
-            heuristic = heuristic_wall
+            #heuristic = heuristic_move
+
+            move = ("P", *state.get_shortest_path(player)[0])
+            print("Rush move", move)
+            return move
+        heuristic = heuristic_wall
 
 
         def max_value(state, alpha, beta, depth):
