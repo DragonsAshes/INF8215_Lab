@@ -51,7 +51,7 @@ def timeit(my_func):
 class MyBoard(Board):
 
     def __init__(self, *args, **kw):
-        super().__init__(args, kw)
+        super().__init__(*args, **kw)
         self.interesting_walls = []
 
     #@timeit
@@ -158,14 +158,14 @@ class MyBoard(Board):
             self.add_wall((x, y), True, player)
             adjacent_vert = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x+1, y-1), (x+1, y), (x+1, y+1), (x, y+1)}
             adjacent_horiz = {(x, y-2), (x, y+2)}
-            interesting_walls += adjacent_vert
-            intersting_walls += adjacent_horiz
+            self.interesting_walls += adjacent_vert
+            self.interesting_walls += adjacent_horiz
         elif kind == 'WV':
             self.add_wall((x, y), False, player)
             adjacent_vert = {(x-2, y), (x+2, y)}
             adjacent_horiz = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x, y+1), (x+1, y-1), (x+1, y), (x+1, y+1)}
-            interesting_walls += adjacent_vert
-            intersting_walls += adjacent_horiz
+            self.interesting_walls += adjacent_vert
+            self.interesting_walls += adjacent_horiz
         elif kind == 'P':
             self.move_pawn((x, y), player)
         return self
@@ -233,7 +233,7 @@ class MyAgent(Agent):
           #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
           if action[0][0] == 'P':
               return -1
-          if action[0] in interesting_walls :
+          if action[0] in state.interesting_walls :
             return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
           return 2 * (abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
           
