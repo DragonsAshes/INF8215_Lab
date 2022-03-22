@@ -49,6 +49,11 @@ def timeit(my_func):
     return timed
 
 class MyBoard(Board):
+
+    def __init__(self, *args, **kw):
+        super().__init__(args, kw)
+        self.interesting_walls = []
+
     #@timeit
     def get_legal_pawn_moves(self, player):
         """Returns legal moves for the pawn of player."""
@@ -151,8 +156,16 @@ class MyBoard(Board):
         kind, x, y = action
         if kind == 'WH':
             self.add_wall((x, y), True, player)
+            adjacent_vert = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x+1, y-1), (x+1, y), (x+1, y+1), (x, y+1)}
+            adjacent_horiz = {(x, y-2), (x, y+2)}
+            interesting_walls += adjacent_vert
+            intersting_walls += adjacent_horiz
         elif kind == 'WV':
             self.add_wall((x, y), False, player)
+            adjacent_vert = {(x-2, y), (x+2, y)}
+            adjacent_horiz = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x, y+1), (x+1, y-1), (x+1, y), (x+1, y+1)}
+            interesting_walls += adjacent_vert
+            intersting_walls += adjacent_horiz
         elif kind == 'P':
             self.move_pawn((x, y), player)
         return self
@@ -220,7 +233,8 @@ class MyAgent(Agent):
           #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
           if action[0][0] == 'P':
               return -1
-          return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
+          distance_to_player = abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
+          
 
         
         if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
