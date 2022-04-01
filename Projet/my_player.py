@@ -217,7 +217,7 @@ class MyAgent(Agent):
 '''
         state = MyBoard(dict_to_board(percepts))
 
-        max_depth = 3
+        max_depth = 2
 
         # if step > 30:
         #     max_depth = 2
@@ -225,11 +225,13 @@ class MyAgent(Agent):
         #     max_depth = 3
 
 
-        def heuristic_wall(state):
-            return state.min_steps_before_victory(1-player)
-
-        #def heuristic_move(state):
-            #return -state.min_steps_before_victory(player)
+        def heuristic(state):
+            try:
+                h = state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player)
+            except NoPath:
+                print("No Path in heuristic!")
+                return +infinity
+            return h
 
         @timeit
         def move_heuristic(p, action):
@@ -240,16 +242,14 @@ class MyAgent(Agent):
           #return 2*(abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
           return 0
           
+        if heuristic(state)>=0 or state.nb_walls[player] == 0:
 
-        
-        if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
-            #heuristic = heuristic_move
-
-            move = ("P", *state.get_shortest_path(player)[0])
+            try:
+                move = ("P", *state.get_shortest_path(player)[0])
+            except NoPath:
+                return state.get_legal_pawn_moves(player)[0]
             print("Rush move", move)
             return move
-        heuristic = heuristic_wall
-
 
         def max_value(state, alpha, beta, depth):
             if state.is_finished():
@@ -261,14 +261,21 @@ class MyAgent(Agent):
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, player))
             actions = actions[:20]
+            #print("Possible actions:", actions)
             for action in actions:
 
                 #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
                 # print("Trying to play action", action)
-                # print("Possible actions:", actions)
                 # print("Horiz Walls:", state.horiz_walls)
                 # print("Verti Walls:", state.verti_walls)
-                values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
+
+                try:
+                    m = (min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action)
+                except NoPath:
+                    print("Action leads to no path")
+                    m = (-infinity, action)
+
+                values.append(m)
                 if (alpha := min(alpha, values[-1][0]))>beta:
                     return (values[-1][0], action)
    
@@ -286,6 +293,7 @@ class MyAgent(Agent):
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, 1-player))
             actions = actions[:20]
+            #print("Possible actions:", actions)
             for action in actions: 
                                 
                 #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][0][0]) + abs(action[2] - percepts['pawns'][0][1])) <= 2)):
@@ -293,7 +301,12 @@ class MyAgent(Agent):
                 # print("Possible actions:", actions)
                 # print("Horiz Walls:", state.horiz_walls)
                 # print("Verti Walls:", state.verti_walls)
-                values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
+                try:
+                    m = (max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action)
+                except NoPath:
+                    print("Action leads to no path")
+                    m = (+infinity, action)
+                values.append(m)
                 if alpha>(beta := max(beta, values[-1][0])):
                     return (values[-1][0], action)
     
