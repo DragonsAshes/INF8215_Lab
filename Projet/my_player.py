@@ -226,7 +226,7 @@ class MyAgent(Agent):
 
         def heuristic(state):
             try:
-                h = 2*state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player)
+                h = state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player)
             except NoPath:
                 print("No Path in heuristic!")
                 return +infinity
