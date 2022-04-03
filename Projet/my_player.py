@@ -175,14 +175,6 @@ class MyAgent(Agent):
 
     """My Quoridor agent."""
 
-    def is_terminal(state):
-        return state['pawns'][0][0] == 8 or state['pawns'][1][0] == 0
-
-    def utility(state, player):
-        assert is_terminal(state), "Utility can only be computed for a terminal state."
-        return 1 if state['pawns'][player][0] == 8*(1-player) else -1
-
-
     def play(self, percepts, player, step, time_left):
         """
         This function is used to play a move according
@@ -204,49 +196,27 @@ class MyAgent(Agent):
         print("player:", player)
         print("step:", step)
         print("time left:", time_left if time_left else '+inf')
-        '''
-        if step==1:
-            return ('WH', 5, 3)
-        if step==2:
-            return ('WH', 3, 3)
-        if step == 3:
-            return('WH', 5, 5)
-        if step ==4:
-            return('WH', 3, 5)
-'''
+
         state = MyBoard(dict_to_board(percepts))
 
         max_depth = 2
 
-        # if step > 30:
-        #     max_depth = 2
-        # if step > 40:
-        #     max_depth = 3
-
-
-        def heuristic_wall(state):
-            return state.min_steps_before_victory(1-player)
-
-        #def heuristic_move(state):
-            #return -state.min_steps_before_victory(player)
+        def heuristic(state):
+            return state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player)
 
         def move_heuristic(p, action):
           if action[0] == 'P':
-              return -1
+              if (action[1], action[2]) == state.get_shortest_path(p)[0]:
+                  return -1
+              return 100
           if action in state.interesting_walls :
             return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
           return 2*(abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
           
-
-        
         if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
-            #heuristic = heuristic_move
-
             move = ("P", *state.get_shortest_path(player)[0])
             print("Rush move", move)
             return move
-        heuristic = heuristic_wall
-
 
         def max_value(state, alpha, beta, depth):
             if state.is_finished():
@@ -255,23 +225,15 @@ class MyAgent(Agent):
                 return (heuristic(state), (0,0))
             values = []
             actions = state.get_actions(player)
-            #actions = state.get_legal_wall_moves(player)
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, player))
             actions = actions[:20]
             for action in actions:
-
-                #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][1][0]) + abs(action[2] - percepts['pawns'][1][1])) <= 2)):
-                # print("Trying to play action", action)
-                # print("Possible actions:", actions)
-                # print("Horiz Walls:", state.horiz_walls)
-                # print("Verti Walls:", state.verti_walls)
                 values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
                 if (alpha := min(alpha, values[-1][0]))>beta:
                     return (values[-1][0], action)
-   
+
             result = max(values, key=itemgetter(0))
-           # print("MAX:", result)
             return result
     
         def min_value(state, alpha, beta, depth):
@@ -281,30 +243,20 @@ class MyAgent(Agent):
                 return (heuristic(state), (0,0))
             values = []
             actions = state.get_actions(1-player)
-            #actions = state.get_legal_wall_moves(1-player)
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, 1-player))
             actions = actions[:20]
             for action in actions: 
-                                
-                #if( action[0][0] == 'P' or ((abs(action[1] - percepts['pawns'][0][0]) + abs(action[2] - percepts['pawns'][0][1])) <= 2)):
-                # print("Trying to play action", action)
-                # print("Possible actions:", actions)
-                # print("Horiz Walls:", state.horiz_walls)
-                # print("Verti Walls:", state.verti_walls)
                 values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
                 if alpha>(beta := max(beta, values[-1][0])):
                     return (values[-1][0], action)
     
             result = min(values, key=itemgetter(0))
-           # print("MIN:", result)
             return result
     
         move = max_value(state, -infinity, +infinity, 0)[1]
         print(move)
         return move
-
-
 
 if __name__ == "__main__":
     agent_main(MyAgent())
