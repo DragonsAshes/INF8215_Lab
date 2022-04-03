@@ -171,11 +171,14 @@ class MyBoard(Board):
             self.move_pawn((x, y), player)
         return self
 
+hack_step=0
 class MyAgent(Agent):
 
     """My Quoridor agent."""
+    """This agent exploits a bug in the quoridor code that if not fixed by the other players makes their agent crash if there're currently no path because our player is blocking the only path."""
 
     def play(self, percepts, player, step, time_left):
+        global hack_step
         """
         This function is used to play a move according
         to the percepts, player and time left provided as input.
@@ -200,19 +203,88 @@ class MyAgent(Agent):
         state = MyBoard(dict_to_board(percepts))
         
         first_row = []
-        for i in range(1, 9):
-            first_row.append((player*7+1, i))
+        for i in range(8):
+            first_row.append([player*7, i])
+        if hack_step < 3:
+            print("Delaying opponent")
+            oppo_y, oppo_x = state.pawns[1-player]
+            oppo_goal_y = state.goals[1-player]
+            wall_actions = state.get_legal_wall_moves(player)
+
+            # find valid walls in front of opponent
+            candidate_walls = []
+            if oppo_goal_y < oppo_y:
+                print("opponent moving north")
+                for wall_action in wall_actions:
+                    wall_dir, wall_y, wall_x = wall_action
+                    if wall_dir == 'WH' and wall_y == oppo_y - 1 and wall_x in (oppo_x, oppo_x - 1):
+                        candidate_walls.append(wall_action)
+            else:
+                print("opponent moving south")
+                for wall_action in wall_actions:
+                    wall_dir, wall_y, wall_x = wall_action
+                    if wall_dir == 'WH' and wall_y == oppo_y and wall_x in (oppo_x, oppo_x - 1):
+                        candidate_walls.append(wall_action)
+            print(f"candidate walls: {candidate_walls}")
+
+            if len(candidate_walls) > 0:
+                choice = random.choice(candidate_walls)
+                print(f"placing a wall: {choice}")
+                hack_step += 1
+                return choice
 
 
-        best_actions = []
+        wall_moves = []
         for action in state.get_actions(player):
             move, *coordinates = action
             if move == "WH" and coordinates in first_row:
-                best_actions.sort(key=lambda x: return abs()+abs())
+                wall_moves.append(action)
 
-        return action
+        wall_moves.sort(key=lambda x: abs(x[1] - state.pawns[player][0])+abs(x[2] - state.pawns[player][1]))
+        
+        if wall_moves:
+            print("Placing support walls")
+            return wall_moves[0] 
 
+        if hack_step==3:
+            hack_step+=1
+            if (player*7, 0) not in state.horiz_walls:
+                y = 1
+            if (player*7, 7) not in state.horiz_walls:
+                y = 6
+            x = 6 if player else 1
+            action = ("WV", x, y)
+            if action in state.get_actions(player):
+                return action
 
+        player_pos = state.pawns[player]
+        if player_pos[1] != 0 and player_pos[1] != 8:
+            print("Moving to the side")
+            return ("P", *state.get_shortest_path(player)[0])
+
+        if player == 0 and player_pos[0] == 0:
+            return ("P", 1, player_pos[1])
+        if player == 1 and player_pos[0] == 8:
+            return ("P", 7, player_pos[1])
+
+        if hack_step==4:
+            wall_moves = []
+            for action in state.get_actions(player):
+                move, *coordinates = action
+                if move == "WV" and coordinates in first_row:
+                    wall_moves.append(action)
+
+            wall_moves.sort(key=lambda x: abs(x[1] - state.pawns[player][0])+abs(x[2] - state.pawns[player][1]))
+            
+            if wall_moves:
+                print("Placing last support wall")
+                hack_step+=1
+                return wall_moves[0] 
+
+        if player == 0 and player_pos[0] == 1:
+            return ("P", 0, player_pos[1])
+        if player == 1 and player_pos[0] == 7:
+            return ("P", 8, player_pos[1])
 
 if __name__ == "__main__":
     agent_main(MyAgent())
