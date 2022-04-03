@@ -171,14 +171,11 @@ class MyBoard(Board):
             self.move_pawn((x, y), player)
         return self
 
-hack_step=0
 class MyAgent(Agent):
 
     """My Quoridor agent."""
-    """This agent exploits a bug in the quoridor code that if not fixed by the other players makes their agent crash if there're currently no path because our player is blocking the only path."""
 
     def play(self, percepts, player, step, time_left):
-        global hack_step
         """
         This function is used to play a move according
         to the percepts, player and time left provided as input.
@@ -199,98 +196,81 @@ class MyAgent(Agent):
         print("player:", player)
         print("step:", step)
         print("time left:", time_left if time_left else '+inf')
-        if hack_step == 0:
-            return ("WV", 0, 3)
 
         state = MyBoard(dict_to_board(percepts))
+
+        max_depth = 2
+
+        def heuristic(state):
+                return state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player) 
+
+        def move_heuristic(p, action):
+          if action[0] == 'P':
+                  return -1
+          if action in state.interesting_walls :
+            return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
+          return 2*(abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
+
+        def remove_useless_pawn_moves(L, p):
+            best_pawn_move = state.get_shortest_path(p)[0]
+            L2 = []
+            for a in L:
+                if a[0] != "P" or (a[1], a[2]) == best_pawn_move:
+                    L2.append(a)
+            return L2
         
-        first_row = []
-        for i in range(8):
-            first_row.append([player*7, i])
-        wall_moves = []
-        for action in state.get_actions(player):
-            move, *coordinates = action
-            if move == "WH" and coordinates in first_row:
-                wall_moves.append(action)
+        if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
+            move = ("P", *state.get_shortest_path(player)[0])
+            print("Rush move", move)
+            return move
 
-        wall_moves.sort(key=lambda x: abs(x[1] - state.pawns[player][0])+abs(x[2] - state.pawns[player][1]))
-        
-        if wall_moves:
-            print("Placing support walls")
-            return wall_moves[0] 
+        def max_value(state, alpha, beta, depth):
+            if state.is_finished():
+                return (state.get_score(player), (0,0))
+            if depth >= max_depth:
+                return (heuristic(state), (0,0))
+            values = []
+            actions = state.get_actions(player)
+            random.shuffle(actions)
+            actions.sort(key=partial(move_heuristic, player))
+            actions = remove_useless_pawn_moves(actions, player)
+            actions = actions[:20]
+            for action in actions:
+                try:
+                    values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
+                except NoPath:
+                    return (-infinity, action)
+                if (alpha := min(alpha, values[-1][0]))>beta:
+                    return (values[-1][0], action)
 
-        """
-        if hack_step==0:
-            hack_step+=1
-            if (player*7, 0) not in state.horiz_walls:
-                y = 1
-            if (player*7, 7) not in state.horiz_walls:
-                y = 6
-            x = 6 if player else 1
-            action = ("WV", x, y)
-            if action in state.get_actions(player):
-                return action
-        """
-
-        """
-        if hack_step < 3:
-            print("Delaying opponent")
-            oppo_y, oppo_x = state.pawns[1-player]
-            oppo_goal_y = state.goals[1-player]
-            wall_actions = state.get_legal_wall_moves(player)
-
-            # find valid walls in front of opponent
-            candidate_walls = []
-            if oppo_goal_y < oppo_y:
-                print("opponent moving north")
-                for wall_action in wall_actions:
-                    wall_dir, wall_y, wall_x = wall_action
-                    if wall_dir == 'WH' and wall_y == oppo_y - 1 and wall_x in (oppo_x, oppo_x - 1):
-                        candidate_walls.append(wall_action)
-            else:
-                print("opponent moving south")
-                for wall_action in wall_actions:
-                    wall_dir, wall_y, wall_x = wall_action
-                    if wall_dir == 'WH' and wall_y == oppo_y and wall_x in (oppo_x, oppo_x - 1):
-                        candidate_walls.append(wall_action)
-            print(f"candidate walls: {candidate_walls}")
-
-            if len(candidate_walls) > 0:
-                choice = random.choice(candidate_walls)
-                print(f"placing a wall: {choice}")
-                hack_step += 1
-                return choice
-        """
-
-
-        player_pos = state.pawns[player]
-        if player_pos[1] != 0 and player_pos[1] != 8:
-            print("Moving to the side")
-            return ("P", *state.get_shortest_path(player)[0])
-
-        if player == 0 and player_pos[0] == 0:
-            return ("P", 1, player_pos[1])
-        if player == 1 and player_pos[0] == 8:
-            return ("P", 7, player_pos[1])
-
-        if hack_step==0:
-            wall_moves = []
-            for action in state.get_actions(player):
-                move, *coordinates = action
-                if move == "WV" and coordinates in first_row:
-                    wall_moves.append(action)
-
-            wall_moves.sort(key=lambda x: abs(x[1] - state.pawns[player][0])+abs(x[2] - state.pawns[player][1]))
-            
-            if wall_moves:
-                print("Placing last support wall")
-                hack_step+=1
-                return wall_moves[0] 
-
-        if player == 0 and player_pos[0] == 1:
-            return ("P", 0, player_pos[1])
-        if player == 1 and player_pos[0] == 7:
-            return ("P", 8, player_pos[1])
+            result = max(values, key=itemgetter(0))
+            return result
+    
+        def min_value(state, alpha, beta, depth):
+            if state.is_finished():
+                return (state.get_score(player), (0,0))
+            if depth >= max_depth:
+                return (heuristic(state), (0,0))
+            values = []
+            actions = state.get_actions(1-player)
+            random.shuffle(actions)
+            actions.sort(key=partial(move_heuristic, 1-player))
+            actions = remove_useless_pawn_moves(actions, 1-player)
+            actions = actions[:20]
+            for action in actions: 
+                try:
+                    values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
+                except NoPath:
+                    return (+infinity, action)
+                if alpha>(beta := max(beta, values[-1][0])):
+                    return (values[-1][0], action)
+    
+            result = min(values, key=itemgetter(0))
+            return result
+    
+        move = max_value(state, -infinity, +infinity, 0)[1]
+        print(move)
+        return move
 
 if __name__ == "__main__":
     agent_main(MyAgent())
