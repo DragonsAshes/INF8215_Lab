@@ -217,6 +217,17 @@ class MyAgent(Agent):
             print("Placing support walls")
             return wall_moves[0] 
 
+        if hack_step==0:
+            hack_step+=1
+            if (player*7, 0) not in state.horiz_walls:
+                y = 1
+            if (player*7, 7) not in state.horiz_walls:
+                y = 6
+            x = 6 if player else 1
+            action = ("WV", x, y)
+            if action in state.get_actions(player):
+                return action
+
         player_pos = state.pawns[player]
         if player_pos[1] != 0 and player_pos[1] != 8:
             print("Moving to the side")
@@ -227,7 +238,7 @@ class MyAgent(Agent):
         if player == 1 and player_pos[0] == 8:
             return ("P", 7, player_pos[1])
 
-        if hack_step==0:
+        if hack_step==1:
             wall_moves = []
             for action in state.get_actions(player):
                 move, *coordinates = action
