@@ -199,20 +199,33 @@ class MyAgent(Agent):
 
         state = MyBoard(dict_to_board(percepts))
 
-        max_depth = 2
+        max_depth = 3
 
         def heuristic(state):
-            return state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player)
+            try:
+                h = state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player) 
+            except NoPath:
+                h = +infinity
+            return h
 
         def move_heuristic(p, action):
           if action[0] == 'P':
-              if (action[1], action[2]) == state.get_shortest_path(p)[0]:
                   return -1
-              return 100
           if action in state.interesting_walls :
             return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
           return 2*(abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
-          
+
+        def remove_useless_pawn_moves(L, p):
+            best_pawn_move = state.get_shortest_path(p)[0]
+            L2 = []
+            for a in L:
+                if a[0] != "P" or (a[1], a[2]) == best_pawn_move:
+                    L2.append(a)
+            return L2
+        
+        if not state.paths_exist():
+           return state.get_legal_pawn_move(player)[0] 
+
         if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
             move = ("P", *state.get_shortest_path(player)[0])
             print("Rush move", move)
@@ -227,9 +240,13 @@ class MyAgent(Agent):
             actions = state.get_actions(player)
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, player))
+            actions = remove_useless_pawn_moves(actions, player)
             actions = actions[:20]
             for action in actions:
-                values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
+                try:
+                    values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
+                except NoPath:
+                    return (-infinity, action)
                 if (alpha := min(alpha, values[-1][0]))>beta:
                     return (values[-1][0], action)
 
@@ -245,9 +262,13 @@ class MyAgent(Agent):
             actions = state.get_actions(1-player)
             random.shuffle(actions)
             actions.sort(key=partial(move_heuristic, 1-player))
+            actions = remove_useless_pawn_moves(actions, 1-player)
             actions = actions[:20]
             for action in actions: 
-                values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
+                try:
+                    values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
+                except NoPath:
+                    return (+infinity, action)
                 if alpha>(beta := max(beta, values[-1][0])):
                     return (values[-1][0], action)
     
