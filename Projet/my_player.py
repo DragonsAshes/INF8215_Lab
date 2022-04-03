@@ -199,7 +199,7 @@ class MyAgent(Agent):
 
         state = MyBoard(dict_to_board(percepts))
 
-        max_depth = 3
+        max_depth = 2
 
         def heuristic(state):
             try:
@@ -224,7 +224,7 @@ class MyAgent(Agent):
             return L2
         
         if not state.paths_exist():
-           return state.get_legal_pawn_move(player)[0] 
+           return state.get_legal_pawn_moves(player)[0] 
 
         if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
             move = ("P", *state.get_shortest_path(player)[0])
