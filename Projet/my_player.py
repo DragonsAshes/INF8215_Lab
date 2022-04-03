@@ -199,8 +199,6 @@ class MyAgent(Agent):
         print("player:", player)
         print("step:", step)
         print("time left:", time_left if time_left else '+inf')
-        if hack_step == 0:
-            return ("WV", 0, 3)
 
         state = MyBoard(dict_to_board(percepts))
         
