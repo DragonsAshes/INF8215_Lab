@@ -199,11 +199,11 @@ class MyAgent(Agent):
 
         state = MyBoard(dict_to_board(percepts))
 
-        max_depth = 2
+        max_depth = 3
 
         def heuristic(state):
             try:
-                h = state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player) 
+                h = 1.1*state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player) 
             except NoPath:
                 h = +infinity
             return h
