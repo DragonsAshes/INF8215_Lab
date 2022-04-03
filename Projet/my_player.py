@@ -211,55 +211,11 @@ class MyAgent(Agent):
             if move == "WH" and coordinates in first_row:
                 wall_moves.append(action)
 
-        wall_moves.sort(key=lambda x: abs(x[1] - state.pawns[player][0])+abs(x[2] - state.pawns[player][1]))
+        #wall_moves.sort(key=lambda x: abs(x[1] - state.pawns[player][0])+abs(x[2] - state.pawns[player][1]))
         
         if wall_moves:
             print("Placing support walls")
             return wall_moves[0] 
-
-        """
-        if hack_step==0:
-            hack_step+=1
-            if (player*7, 0) not in state.horiz_walls:
-                y = 1
-            if (player*7, 7) not in state.horiz_walls:
-                y = 6
-            x = 6 if player else 1
-            action = ("WV", x, y)
-            if action in state.get_actions(player):
-                return action
-        """
-
-        """
-        if hack_step < 3:
-            print("Delaying opponent")
-            oppo_y, oppo_x = state.pawns[1-player]
-            oppo_goal_y = state.goals[1-player]
-            wall_actions = state.get_legal_wall_moves(player)
-
-            # find valid walls in front of opponent
-            candidate_walls = []
-            if oppo_goal_y < oppo_y:
-                print("opponent moving north")
-                for wall_action in wall_actions:
-                    wall_dir, wall_y, wall_x = wall_action
-                    if wall_dir == 'WH' and wall_y == oppo_y - 1 and wall_x in (oppo_x, oppo_x - 1):
-                        candidate_walls.append(wall_action)
-            else:
-                print("opponent moving south")
-                for wall_action in wall_actions:
-                    wall_dir, wall_y, wall_x = wall_action
-                    if wall_dir == 'WH' and wall_y == oppo_y and wall_x in (oppo_x, oppo_x - 1):
-                        candidate_walls.append(wall_action)
-            print(f"candidate walls: {candidate_walls}")
-
-            if len(candidate_walls) > 0:
-                choice = random.choice(candidate_walls)
-                print(f"placing a wall: {choice}")
-                hack_step += 1
-                return choice
-        """
-
 
         player_pos = state.pawns[player]
         if player_pos[1] != 0 and player_pos[1] != 8:

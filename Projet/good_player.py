@@ -219,10 +219,12 @@ class MyAgent(Agent):
                     L2.append(a)
             return L2
         
+        """
         if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
             move = ("P", *state.get_shortest_path(player)[0])
             print("Rush move", move)
             return move
+        """
 
         def max_value(state, alpha, beta, depth):
             if state.is_finished():
