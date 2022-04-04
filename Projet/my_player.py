@@ -222,6 +222,7 @@ class MyAgent(Agent):
                 if a[0] != "P" or (a[1], a[2]) == best_pawn_move:
                     L2.append(a)
             return L2
+
         
         if not state.paths_exist():
            return state.get_legal_pawn_moves(player)[0] 
@@ -242,6 +243,7 @@ class MyAgent(Agent):
             actions.sort(key=partial(move_heuristic, player))
             actions = remove_useless_pawn_moves(actions, player)
             actions = actions[:20]
+            
             for action in actions:
                 try:
                     values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
@@ -277,6 +279,11 @@ class MyAgent(Agent):
     
         move = max_value(state, -infinity, +infinity, 0)[1]
         print(move)
+        if state.is_action_valid(move, player):
+            print("this move is valid")
+            return move
+        move = ("P", *state.get_shortest_path(player)[0])
+        print("move becoming : ", move)
         return move
 
 if __name__ == "__main__":
