@@ -9,6 +9,7 @@ Authors:
 BEANS = ['SIRA','HOROZ','DERMASON','BARBUNYA','CALI','BOMBAY','SEKER']
 
 from bean_testers import BeanTester
+import keras
 
 
 class MyBeanTester(BeanTester):
@@ -17,6 +18,9 @@ class MyBeanTester(BeanTester):
         pass
 
     def train(self, X_train, y_train):
+        #print("self : ", self)
+        #print("X_train : ", X_train)
+        #print("Y_train : ", y_train)
         """
         train the current model on train_data
         :param X_train: 2D array of data points.
@@ -29,6 +33,9 @@ class MyBeanTester(BeanTester):
                 the second column is the example label.
         """
         # TODO: entrainer un modèle sur X_train & y_train
+
+        model = keras.Sequential()
+
         raise NotImplementedError()
 
     def predict(self, X_data):
