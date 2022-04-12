@@ -9,18 +9,18 @@ Authors:
 BEANS = ['SIRA','HOROZ','DERMASON','BARBUNYA','CALI','BOMBAY','SEKER']
 
 from bean_testers import BeanTester
-import keras
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
 
 
 class MyBeanTester(BeanTester):
     def __init__(self):
-        # TODO: initialiser votre modèle ici:
-        pass
+        self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, max_depth=10, criterion='entropy')
 
     def train(self, X_train, y_train):
-        #print("self : ", self)
-        #print("X_train : ", X_train)
-        #print("Y_train : ", y_train)
+        # print("self : ", self)
+        # print("X_train : ", X_train)
+        # print("Y_train : ", y_train)
         """
         train the current model on train_data
         :param X_train: 2D array of data points.
@@ -32,11 +32,8 @@ class MyBeanTester(BeanTester):
                 the first column is the example ID.
                 the second column is the example label.
         """
-        # TODO: entrainer un modèle sur X_train & y_train
+        self.randomforest.fit(X_train, y_train)
 
-        model = keras.Sequential()
-
-        raise NotImplementedError()
 
     def predict(self, X_data):
         """
@@ -54,5 +51,4 @@ class MyBeanTester(BeanTester):
                 the first column is the example ID.
         :return: a 2D list of predictions with 2 columns: ID and prediction
         """
-        # TODO: make predictions on X_data and return them
-        raise NotImplementedError()
+        return self.randomforest.predict(X_data)
