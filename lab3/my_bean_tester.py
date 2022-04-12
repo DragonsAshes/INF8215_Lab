@@ -12,11 +12,20 @@ from bean_testers import BeanTester
 import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn import linear_model
+from sklearn import svm
+from sklearn.neighbors import *
+from sklearn import tree
 
 class MyBeanTester(BeanTester):
     def __init__(self):
         #self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, max_depth=10, criterion='entropy')
         self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, criterion='entropy')
+        #self.randomforest = KNeighborsClassifier()
+        #self.randomforest = linear_model.LogisticRegression(C=1e5)
+        #self.randomforest = svm.SVC(kernel='linear')
+        #self.randomforest = tree.DecisionTreeClassifier()
 
     def train(self, X_train, y_train):
         # print("self : ", self)
@@ -35,7 +44,9 @@ class MyBeanTester(BeanTester):
         """
         X_train = np.array(X_train)
         y_train = np.array(y_train)
-        self.randomforest.fit(X_train[:,1:], y_train[:,1:])
+        X_train = np.delete(X_train[:,1:], [2,3], 1)
+        print(X_train[1])
+        self.randomforest.fit(X_train, y_train[:,1:])
 
 
     def predict(self, X_data):
@@ -55,6 +66,6 @@ class MyBeanTester(BeanTester):
         :return: a 2D list of predictions with 2 columns: ID and prediction
         """
         X_data = np.array(X_data)
-        predictions = self.randomforest.predict(X_data[:,1:])
+        predictions = self.randomforest.predict(np.delete(X_data[:,1:], [2,3],1))
 
         return [[int(X_data[i][0]), p] for i,p in enumerate(predictions)]
