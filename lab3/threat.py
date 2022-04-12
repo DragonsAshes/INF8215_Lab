@@ -18,4 +18,4 @@ for key in dic:
 for column in dic['SIRA']:
     print('\n','='*10,column, '='*10)
     for key in dic:
-        print(key, dic[key][column].max(), dic[key][column].min(), dic[key][column].mean())
+        print(key.ljust(15), str(dic[key][column].max()).ljust(15), str(dic[key][column].min()).ljust(15),  str(dic[key][column].mean()).ljust(15))
