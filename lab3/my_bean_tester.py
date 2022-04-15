@@ -24,11 +24,13 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import AdaBoostClassifier
 
 
 parameters = {
     "n_estimators":[5,10,50,100,250],
-    "max_depth":[2,4,8,16,32,None]
+    "max_depth":[2,4,8,16,32,None],
+    "learning_rate":[1.0]
     
 }
 def display(results):
@@ -45,8 +47,9 @@ class MyBeanTester(BeanTester):
         #self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, max_depth=10, criterion='entropy')
         self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, criterion='entropy')
         #self.randomforest = ExtraTreesClassifier(min_samples_split=2)
-        #self.randomforest = GradientBoostingClassifier(n_estimators=100, learning_rate=1.0, max_depth=1, random_state=0)
-        #self.randomforest = GridSearchCV(RandomForestClassifier(),parameters,cv=5)
+        #self.randomforest = GradientBoostingClassifier(n_estimators=250, learning_rate=1.0, max_depth=10, random_state=0)
+        self.ada = AdaBoostClassifier(base_estimator=self.randomforest, learning_rate=1.0, n_estimators=250)
+        #self.randomforest = GridSearchCV(GradientBoostingClassifier,parameters,cv=5, n_jobs=-1)
         #self.randomforest = KNeighborsClassifier()
         #self.randomforest = linear_model.LogisticRegression(C=1e5)
         #self.randomforest = svm.SVC(kernel='linear')
@@ -82,11 +85,11 @@ class MyBeanTester(BeanTester):
         X_train = self.sc.fit_transform(X_train)
         X_train = self.pca.fit_transform(X_train)
 
-        #X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.4, random_state=0)
+        X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.4, random_state=0)
             
         #X_train = np.delete(X_train[:,1:], [2,3], 1)
-        self.randomforest.fit(X_train, y_train)
-        #print("score : ",a.score(X_test, y_test))
+        a = self.randomforest.fit(X_train, y_train)
+        print("score : ",a.score(X_test, y_test))
         #display(self.randomforest)
 
 
