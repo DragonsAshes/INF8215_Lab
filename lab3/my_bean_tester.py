@@ -25,6 +25,10 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import AdaBoostClassifier
+import keras
+from keras.models import Sequential
+from keras.layers import Dense
+from tensorflow.keras.utils import to_categorical
 
 
 parameters = {
@@ -58,6 +62,14 @@ class MyBeanTester(BeanTester):
         self.pca = PCA(n_components=12)
         self.sc = StandardScaler()
 
+                # Initialising the ANN
+        self.classifier = Sequential()
+        self.classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu', input_dim = 12))
+        self.classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu'))
+        self.classifier.add(Dense(units = 7, kernel_initializer = 'uniform', activation = 'softmax'))
+        self.classes = ['SEKER', 'HOROZ', 'SIRA', 'DERMASON', 'BARBUNYA', 'CALI', 'BOMBAY']
+
+
     def train(self, X_train, y_train):
         # print("self : ", self)
         # print("X_train : ", X_train)
@@ -76,20 +88,27 @@ class MyBeanTester(BeanTester):
         X_train = np.array(X_train)
         y_train = np.array(y_train)
         
-        y_train = y_train[:,1:]
+        y_train = y_train[:,1]
 
         X_train = X_train[:,1:]
 
 
+        y_train = np.array([self.classes.index(a) for a in y_train])
+        print(y_train)
+        y_train = to_categorical(y_train)
+        print(y_train)
+        print(X_train)
 
         X_train = self.sc.fit_transform(X_train)
         X_train = self.pca.fit_transform(X_train)
 
-        X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.4, random_state=0)
+        #X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.4, random_state=0)
             
         #X_train = np.delete(X_train[:,1:], [2,3], 1)
-        a = self.randomforest.fit(X_train, y_train)
-        print("score : ",a.score(X_test, y_test))
+        self.classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+        self.classifier.fit(X_train, y_train, batch_size = 10, epochs = 200)
+        # a = self.randomforest.fit(X_train, y_train)
+        # print("score : ",a.score(X_test, y_test))
         #display(self.randomforest)
 
 
@@ -115,7 +134,10 @@ class MyBeanTester(BeanTester):
         X_data = self.sc.transform(X_data)
         X_data = self.pca.transform(X_data)
         #X_data = np.delete(X_data, [2,3],1)
-        predictions = self.randomforest.predict(X_data)
+        predictions = self.classifier.predict(X_data)
+
+        predictions = [self.classes[np.argmax(a)] for a in predictions]
+        # predictions = self.randomforest.predict(X_data)
         print(predictions)
         
         return [[i+1, p] for i,p in enumerate(predictions)]

@@ -1,0 +1,60 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[letterpaper,margin=0.75in]{geometry}
+\renewcommand{\rmdefault}{ptm}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+
+\title{Classification multiclasses: légumes secs}
+\author{Team Kazou}
+\date{\vspace{-5ex}}
+
+\begin{document}
+
+\maketitle
+
+\section*{Prétraitement des attributs}
+
+Tout d'abord il faut supprimer la colonne "id" dans les données car elle ne doit pas être utilisée pour la prédiction. Après une analyse des données à l'aide de la librairie panda, il est clair que certains attributs sont fortement corrélés. Ainsi il convient de sélectionner des attributs idoines et non redondants pour l'apprentissage. 
+
+Une première approche est de sélectionner manuellement ces attributs. Par exemple on remarque que l'attribut périmètre est très dépendant des attributs longueur des axes. On pourrait donc supprimer ces deux attributs pour réduire la dimension de l'espace de recherche. Cependant, optimiser ce choix est une tâche difficile et laborieuse. 
+
+Une technique pour automatiser ce processus consiste à utiliser une analyse en composantes principales pour réduire le nombre d'attributs en les décorrélant les uns des autres. Pour cela il est possible d'utiliser le module de décomposition PCA de sklearn. Après expérimentation le nombre d'attributs optimal à utiliser semble être de 12. 
+
+Enfin avant d'entrainer le modèles les attributs sont standardisés en leur retranchant leur moyenne pour les centrer sur 0 avec le module StandardScaler de sklearn.
+
+Si on souhaite entrainer un modèle de réseau de neurones, il faut aussi vectoriser les données de sortie catégoriques avec de l'encodage one-hot.
+
+\section*{Méthodologie}
+
+Pour évaluer entre eux les différents modèles sans faire de soumission sur Kaggle, les données ont été divisées en 60\% de données d'entrainement et 40\% de données de validation. La fonction train\_test\_split de sklearn permet de faire exactement cela.
+
+En ce qui concerne l'optimisation des hyper-paramètres une méthode automatique qui utilise une recherche exhaustive a été implémentée avec le module GridSearchCV de sklearn. Elle permet de tester toutes les combinaisons d'hyper-paramètres spécifiés et d'en extraire la meilleure. 
+
+Voici les différentes méthodes qui ont été testées :
+
+\begin{itemize}
+	\item Decision Tree
+	\item Random Forest
+	\item SVM avec différents noyaux
+	\item Gradient Boosting
+	\item K-Neighbors classifiers
+	\item Un réseau de neurone dense de taille (12, 6, 6, 7) entrainé avec Keras
+	
+\end{itemize}
+
+
+\section*{Résultats}
+
+Voici les scores obtenus ces différentes méthodes:
+%TODO: faire un tableau
+
+
+\section*{Discussion}
+
+La méthode par Random Forest est celle qui obtient le meilleur score sur Kaggle. Les optimisations faites au niveau du pré traitement des données, notamment la standardisation des attributs et l'analyse en composantes principale permet de grandement améliorer les performances du modèles en réduisant le surentrainement.
+
+%TODO: approche 3 prédicteurs
+
+\end{document}
+
