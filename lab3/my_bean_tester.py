@@ -25,6 +25,7 @@ from sklearn.ensemble import ExtraTreesClassifier
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import StackingClassifier
 import keras
 from keras.models import Sequential
 from keras.layers import Dense
@@ -46,28 +47,34 @@ def display(results):
     for mean,std,params in zip(mean_score,std_score,params):
         print(f'{round(mean,3)} + or -{round(std,3)} for the {params}')
 
+models = [('rf', RandomForestClassifier(verbose=3, n_jobs=-1, criterion='entropy')), ('ada', AdaBoostClassifier(base_estimator=RandomForestClassifier(criterion='entropy'), learning_rate=1.0, n_estimators=250))]
+
 class MyBeanTester(BeanTester):
     def __init__(self):
-        #self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, max_depth=10, criterion='entropy')
-        self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, criterion='entropy')
+        #self.gradientboost = RandomForestClassifier(verbose=3, n_jobs=-1, max_depth=10, criterion='entropy')
+        #self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, criterion='entropy')
+        
+        self.randomforest = StackingClassifier(estimators=models)
+
         #self.randomforest = ExtraTreesClassifier(min_samples_split=2)
-        #self.randomforest = GradientBoostingClassifier(n_estimators=250, learning_rate=1.0, max_depth=10, random_state=0)
-        self.ada = AdaBoostClassifier(base_estimator=self.randomforest, learning_rate=1.0, n_estimators=250)
+        #self.gradientboost = GradientBoostingClassifier(n_estimators=250, learning_rate=1.0, max_depth=10, random_state=0)
+        #self.ada = AdaBoostClassifier(base_estimator=self.randomforest, learning_rate=1.0, n_estimators=250)
         #self.randomforest = GridSearchCV(GradientBoostingClassifier,parameters,cv=5, n_jobs=-1)
         #self.randomforest = KNeighborsClassifier()
         #self.randomforest = linear_model.LogisticRegression(C=1e5)
         #self.randomforest = svm.SVC(kernel='linear')
         #self.randomforest = tree.DecisionTreeClassifier()
-        #self.pca = PCA()
+        
+        
         self.pca = PCA(n_components=12)
         self.sc = StandardScaler()
 
                 # Initialising the ANN
-        self.classifier = Sequential()
-        self.classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu', input_dim = 12))
-        self.classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu'))
-        self.classifier.add(Dense(units = 7, kernel_initializer = 'uniform', activation = 'softmax'))
-        self.classes = ['SEKER', 'HOROZ', 'SIRA', 'DERMASON', 'BARBUNYA', 'CALI', 'BOMBAY']
+        #self.classifier = Sequential()
+        #self.classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu', input_dim = 12))
+        #self.classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu'))
+        #self.classifier.add(Dense(units = 7, kernel_initializer = 'uniform', activation = 'softmax'))
+        #self.classes = ['SEKER', 'HOROZ', 'SIRA', 'DERMASON', 'BARBUNYA', 'CALI', 'BOMBAY']
 
 
     def train(self, X_train, y_train):
@@ -93,11 +100,8 @@ class MyBeanTester(BeanTester):
         X_train = X_train[:,1:]
 
 
-        y_train = np.array([self.classes.index(a) for a in y_train])
-        print(y_train)
-        y_train = to_categorical(y_train)
-        print(y_train)
-        print(X_train)
+        #y_train_keras = np.array([self.classes.index(a) for a in y_train])
+        #y_train_keras = to_categorical(y_train_keras)
 
         X_train = self.sc.fit_transform(X_train)
         X_train = self.pca.fit_transform(X_train)
@@ -105,8 +109,15 @@ class MyBeanTester(BeanTester):
         #X_train, X_test, y_train, y_test = train_test_split(X_train, y_train, test_size=0.4, random_state=0)
             
         #X_train = np.delete(X_train[:,1:], [2,3], 1)
-        self.classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
-        self.classifier.fit(X_train, y_train, batch_size = 10, epochs = 200)
+
+        #Training models
+        #self.classifier.compile(optimizer = 'adam', loss = 'binary_crossentropy', metrics = ['accuracy'])
+        #self.classifier.fit(X_train, y_train_keras, batch_size = 10, epochs = 50)
+
+        self.randomforest.fit(X_train, y_train)
+
+        #self.gradientboost.fit(X_train, y_train)
+
         # a = self.randomforest.fit(X_train, y_train)
         # print("score : ",a.score(X_test, y_test))
         #display(self.randomforest)
@@ -134,10 +145,36 @@ class MyBeanTester(BeanTester):
         X_data = self.sc.transform(X_data)
         X_data = self.pca.transform(X_data)
         #X_data = np.delete(X_data, [2,3],1)
-        predictions = self.classifier.predict(X_data)
 
-        predictions = [self.classes[np.argmax(a)] for a in predictions]
-        # predictions = self.randomforest.predict(X_data)
-        print(predictions)
+        #Predict datas
+        #predictions_keras = self.classifier.predict(X_data)
+        #predictions_keras = [self.classes[np.argmax(a)] for a in predictions_keras]
+        #print(predictions_keras)
+
+        predictions = self.randomforest.predict(X_data)
+        #print(predictions_rf)
+
+        #predictions_gb = self.gradientboost.predict(X_data)
+        #print(predictions_gb)
+
+        #predictions = []
+
+        # c1 = 0
+        # c2 = 0
+        # c3 = 0
+        # c4 = 0
+        # for i in range(len(X_data)):
+        #     if predictions_rf[i] == predictions_gb[i]:
+        #         predictions.append(predictions_rf[i])
+        #         c1 += 1
+        #     elif predictions_rf[i] == predictions_keras[i]:
+        #         predictions.append(predictions_rf[i])
+        #         c2 += 1
+        #     elif predictions_gb[i] == predictions_keras[i]:
+        #         predictions.append(predictions_gb[i])
+        #         c3 += 1
+        #     else:
+        #         predictions.append(predictions_rf[i])
+        #         c4 += 1
         
         return [[i+1, p] for i,p in enumerate(predictions)]
