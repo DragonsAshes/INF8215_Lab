@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+
+"""
+Team:
+Cazou
+Authors:
+Virgile Retault - 2164296
+Sebastien Foucher - 2162248
+"""
+
 """
 Quoridor agent.
 Copyright (C) 2013, DragonsAshes & g33kex 
@@ -32,6 +41,7 @@ from functools import partial
 times = {}
 occurences = {}
 def timeit(my_func):
+    #This class is used to mesure the average time of function's execution
     @wraps(my_func)
     def timed(*args, **kw):
         name = my_func.__name__
@@ -48,6 +58,7 @@ def timeit(my_func):
         return output
     return timed
 
+#Reimplementing some Board functions to make them faster
 class MyBoard(Board):
 
     def __init__(self, *args, **kw):
@@ -107,6 +118,7 @@ class MyBoard(Board):
         if is_horiz:
             if wall_horiz_right or wall_horiz_left:
                 return False
+            # Doing paths_exist() only if the new wall is adjacent to existing walls
             adjacent_vert = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x+1, y-1), (x+1, y), (x+1, y+1), (x, y+1)}
             adjacent_horiz = {(x, y-2), (x, y+2)}
             if adjacent_vert.intersection(verti_walls) or adjacent_horiz.intersection(horiz_walls):
@@ -118,6 +130,7 @@ class MyBoard(Board):
         else:
             if wall_vert_up or wall_vert_down:
                 return False
+            # Doing paths_exist() only if the new wall is adjacent to existing walls
             adjacent_horiz = {(x-1, y-1), (x-1, y), (x-1, y+1), (x, y-1), (x+1, y-1), (x+1, y), (x+1, y+1), (x, y+1)}
             adjacent_vert = {(x, y-2), (x, y+2)}
             if adjacent_vert.intersection(verti_walls) or adjacent_horiz.intersection(horiz_walls):
@@ -199,8 +212,10 @@ class MyAgent(Agent):
 
         state = MyBoard(dict_to_board(percepts))
 
+        # Setting the search's depth to 3
         max_depth = 3
 
+        # Define the heuristic to get the cost of a move
         def heuristic(state):
             try:
                 h = 1.1*state.min_steps_before_victory(1-player)-state.min_steps_before_victory(player) 
@@ -208,6 +223,7 @@ class MyAgent(Agent):
                 h = +infinity
             return h
 
+        # Define the heuristic to classify movement
         def move_heuristic(p, action):
           if action[0] == 'P':
                   return -1
@@ -215,6 +231,8 @@ class MyAgent(Agent):
             return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
           return 2*(abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
 
+        # Remove pwn moves which are not the best
+        # Used to avoid going back and forth
         def remove_useless_pawn_moves(L, p):
             best_pawn_move = state.get_shortest_path(p)[0]
             L2 = []
@@ -223,25 +241,33 @@ class MyAgent(Agent):
                     L2.append(a)
             return L2
 
-        
+        # If there is no path, play the best pwn move by default
+        # Used to avoid the glitch where the path is blocked by one of the player
         if not state.paths_exist():
            return state.get_legal_pawn_moves(player)[0] 
 
+        # If the player is closest to the goal than the over one, just rush
         if state.min_steps_before_victory(1-player) >= state.min_steps_before_victory(player) or state.nb_walls[player] == 0:
             move = ("P", *state.get_shortest_path(player)[0])
             print("Rush move", move)
             return move
 
         def max_value(state, alpha, beta, depth):
+            # Return score if state is a goal state
             if state.is_finished():
                 return (state.get_score(player), (0,0))
+            # Return the heuristic of the state if max depth is reached
             if depth >= max_depth:
                 return (heuristic(state), (0,0))
+
             values = []
             actions = state.get_actions(player)
+            #Add some randomness to the moves
             random.shuffle(actions)
+            #Sort moves using heuristic
             actions.sort(key=partial(move_heuristic, player))
             actions = remove_useless_pawn_moves(actions, player)
+            # Only keep 20 first moves
             actions = actions[:20]
             
             for action in actions:
@@ -256,15 +282,20 @@ class MyAgent(Agent):
             return result
     
         def min_value(state, alpha, beta, depth):
+            # Return score if state is a goal state
             if state.is_finished():
                 return (state.get_score(player), (0,0))
+            # Return the heuristic of the state if max depth is reached
             if depth >= max_depth:
                 return (heuristic(state), (0,0))
             values = []
             actions = state.get_actions(1-player)
+            #Add some randomness to the moves
             random.shuffle(actions)
+            #Sort moves using heuristic
             actions.sort(key=partial(move_heuristic, 1-player))
             actions = remove_useless_pawn_moves(actions, 1-player)
+            # Only keep 20 first moves
             actions = actions[:20]
             for action in actions: 
                 try:
@@ -277,6 +308,7 @@ class MyAgent(Agent):
             result = min(values, key=itemgetter(0))
             return result
     
+        # Last check to see if move is valid befor playing. If not, play the best pwn move by default
         move = max_value(state, -infinity, +infinity, 0)[1]
         print("Trying to play:", move)
         state2 = Board(dict_to_board(percepts))
