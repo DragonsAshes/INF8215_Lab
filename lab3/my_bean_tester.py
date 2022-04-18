@@ -1,9 +1,9 @@
 """
 Team:
-<<<<< TEAM NAME >>>>>
+Kazou
 Authors:
-<<<<< NOM COMPLET #1 - MATRICULE #1 >>>>>
-<<<<< NOM COMPLET #2 - MATRICULE #2 >>>>>
+Virgile Retault - 2164296
+Sebastien Foucher - 2162248
 """
 
 BEANS = ['SIRA','HOROZ','DERMASON','BARBUNYA','CALI','BOMBAY','SEKER']
