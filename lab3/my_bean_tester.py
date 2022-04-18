@@ -30,6 +30,7 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense
 from tensorflow.keras.utils import to_categorical
+import random
 
 
 parameters = {
@@ -52,9 +53,9 @@ models = [('rf', RandomForestClassifier(verbose=3, n_jobs=-1, criterion='entropy
 class MyBeanTester(BeanTester):
     def __init__(self):
         #self.gradientboost = RandomForestClassifier(verbose=3, n_jobs=-1, max_depth=10, criterion='entropy')
-        #self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, criterion='entropy')
+        self.randomforest = RandomForestClassifier(verbose=3, n_jobs=-1, criterion='entropy')
         
-        self.randomforest = StackingClassifier(estimators=models)
+        # self.randomforest = StackingClassifier(estimators=models)
 
         #self.randomforest = ExtraTreesClassifier(min_samples_split=2)
         #self.gradientboost = GradientBoostingClassifier(n_estimators=250, learning_rate=1.0, max_depth=10, random_state=0)
@@ -74,7 +75,7 @@ class MyBeanTester(BeanTester):
         #self.classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu', input_dim = 12))
         #self.classifier.add(Dense(units = 6, kernel_initializer = 'uniform', activation = 'relu'))
         #self.classifier.add(Dense(units = 7, kernel_initializer = 'uniform', activation = 'softmax'))
-        #self.classes = ['SEKER', 'HOROZ', 'SIRA', 'DERMASON', 'BARBUNYA', 'CALI', 'BOMBAY']
+        self.classes = ['SEKER', 'HOROZ', 'SIRA', 'DERMASON', 'BARBUNYA', 'CALI', 'BOMBAY']
 
 
     def train(self, X_train, y_train):
@@ -98,6 +99,23 @@ class MyBeanTester(BeanTester):
         y_train = y_train[:,1]
 
         X_train = X_train[:,1:]
+
+        df = pd.DataFrame(X_train)
+        df["class"]=y_train
+        
+        dic = {key: df.loc[df['class'] == key] for key in self.classes}
+
+        m = int(0.75*max([len(dic[key]) for key in dic]))
+
+        for key in dic:
+            dic[key] = dic[key].sample(m, replace=True)
+
+        df = pd.concat([dic[key] for key in dic])
+
+        liste = df.values
+        np.random.shuffle(liste)
+
+        X_train, y_train = liste[:,:-1], liste[:, -1]
 
 
         #y_train_keras = np.array([self.classes.index(a) for a in y_train])
