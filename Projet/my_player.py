@@ -278,9 +278,10 @@ class MyAgent(Agent):
             return result
     
         move = max_value(state, -infinity, +infinity, 0)[1]
-        print(move)
-        if state.is_action_valid(move, player):
-            print("this move is valid")
+        print("Trying to play:", move)
+        state2 = Board(dict_to_board(percepts))
+        if state2.is_action_valid(move, player):
+            print("I can confirm this move is valid")
             return move
         move = ("P", *state.get_shortest_path(player)[0])
         print("move becoming : ", move)
