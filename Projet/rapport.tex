@@ -1,0 +1,64 @@
+\documentclass[12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[letterpaper,margin=0.75in]{geometry}
+\renewcommand{\rmdefault}{ptm}
+\usepackage[numbers]{natbib}
+\usepackage{hyperref}
+
+\title{Classification multiclasses: légumes secs}
+\author{
+  Team : Kazou\\
+  Virgile Retault : 2164296\\
+  Sebastien Foucher : 2162248
+}
+
+\vspace{-5ex}
+
+\begin{document}
+
+\maketitle
+
+\section*{}
+\newpage
+Voici les différentes méthodes qui ont été testées :
+
+\begin{itemize}
+	\item Decision Tree
+	\item Random Forest
+	\item SVM
+	\item Gradient Boosting
+	\item Adaboost avec random forest
+	\item K-Neighbors classifiers
+	\item Un réseau de neurone dense de taille (12, 6, 6, 7) entrainé avec Keras
+	\item Utilisation de plusieurs modèles en simultané avec un Stack Classifier
+	
+\end{itemize}
+
+
+\section*{Résultats}
+
+Voici les scores obtenus avec ces différentes méthodes:
+\begin{center}
+	\begin{tabular}{ |c|c| }
+		\hline
+		Méthode & Précision \\\hline\hline
+	  K-Neighbors Classifier & 80\% \\\hline
+		Decision Tree & 89.6\% \\\hline
+		SVM avec noyau linéaire & 90.1\% \\\hline
+		Gradient Boosting (avec PCA 12) & 91.3\% \\\hline
+		Random Forest (sans PCA) & 91.5\% \\\hline
+		Réseau de neurone (12, 6, 6, 7) (avec PCA 12) & 92.2\% \\\hline
+		Adaboost avec random forest (avec PCA 12) & 92.9\% \\\hline
+		StackClassifier combinant RandomForest, ExtraTree, AdaBoost (avec PCA 12) & 93.3\% \\\hline
+		Random Forest (avec PCA 12) & 93.4\% \\\hline
+
+	\end{tabular} 
+\end{center}
+
+
+\section*{Discussion}
+
+La méthode par Random Forest utilisant une analyse par composantes principales avec 12 composantes est celle qui obtient le meilleur score sur Kaggle. Les optimisations faites au niveau du pré traitement des données, notamment la standardisation des attributs et l'analyse en composantes principale permettent ainsi de grandement améliorer les performances du modèles en réduisant le surentrainement.
+
+\end{document}
+
