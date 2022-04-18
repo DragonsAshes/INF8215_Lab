@@ -9,7 +9,6 @@ Sebastien Foucher - 2162248
 BEANS = ['SIRA','HOROZ','DERMASON','BARBUNYA','CALI','BOMBAY','SEKER']
 
 from bean_testers import BeanTester
-import pandas as pd
 import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.decomposition import PCA
