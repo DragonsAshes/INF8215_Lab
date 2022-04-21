@@ -7,6 +7,7 @@
 \usepackage[french]{babel}
 \usepackage{hyperref}
 \usepackage{graphicx}
+\usepackage{float}
 
 \title{Projet - Agent intelligent pour le jeu Quoridor}
 \author{
@@ -20,6 +21,8 @@
 \begin{document}
 
 \maketitle
+
+\vspace{-45pt}
 
 \section*{Méthodologie}
 
@@ -38,8 +41,6 @@ Après de nombreux tests nous avons trouvé qu'une profondeur maximale de 3 pour
 \section*{Résultats et Evolution de l'agent}
 
 Tableau: nombre de fois qu'on gagne contre random/glouton et contre lui même sans les 20 coups avec 2 de profondeur
-
-Bugs contre lui même?
 
 Voici les scores obtenus avec ces différentes méthodes:
 \begin{center}
@@ -66,25 +67,22 @@ Le plus gros problème de notre agent lors de la compétition est qu'il essayait
 Pendant nos expériences, nous avons découvert un bug dans le moteur de jeu et nous avons trouvé une méthode pour l'exploiter et gagner une partie contre n'importe quel agent. Cependant nous n'avons pas souhaité utiliser cette méthode lors de la compétition car elle était déloyale. 
 
 La plupart des fonctions du moteur de jeu renvoient une exception NoPath si elles sont appelées et qu'il n'existe aucun chemin valide. Cependant, la fonction get\_shortest\_path renvoie une exception NoPath à tord dans certains cas. En effet lorsque le seul chemin possible est obstrué par un joueur, la fonction considère qu'il n'y a pas de chemin possible, alors qu'il y en aura forcément un au tour suivant car le joueur ne peut normalement pas choisir de rester sur place sans bouger.
-explain except NoPath
-
-% TODO: insérer screenshot de la construction
-\begin{figure}
-	\centering
-	\caption{My\_player VS Greedy\_player}
-	\includegraphics[width=0.75\paperwidth]{myplayer_vs_greedy.png}
-    	\label{fig:arch}
-\end{figure}
-
-\begin{figure}
-	\centering
-	\caption{Greed\_player VS My\_player}
-	\includegraphics[width=0.75\paperwidth]{greedy_vs_myplayer.png}
-	\label{fig:arch}
-\end{figure}
-
 
 Il est possible de construire la situation suivante pour forcer un cas où le seul chemin possible est bloqué par notre pion. Ainsi lorsque l'agent de l'adversaire fait un appel au moteur de jeu, par exemple en appelant min\_steps\_before\_victory, une erreur NoPath sera retournée faisant ainsi planter le programme de l'agent. Une contre mesure que nous avons utilisé est d'utiliser un bloc try/catch devant chaque appel au moteur de jeu pour récupérer cette exception et jouer un coup aléatoire dans ce cas. Cependant cette contre mesure ne fonctionne pas totalement car si l'adversaire décide de poser un mur, la fonction is\_wall\_possible\_here du code coté serveur va être appelée et l'adversaire va se faire renvoyer pour coup invalide. 
+
+\begin{figure}[H]
+	\centering
+	\caption{Agent malveillant contre greedy}
+	\includegraphics[width=0.75\paperwidth]{images/myplayer_vs_greedy.png}
+    	\label{fig:arch1}
+\end{figure}
+
+\begin{figure}[H]
+	\centering
+	\caption{Greedy contre agent marveillant}
+	\includegraphics[width=0.75\paperwidth]{images/greedy_vs_myplayer.png}
+  \label{fig:arch2}
+\end{figure}
 
 Le problème de cette méthode est que si l'adversaire joue des coups aléatoires sur le côté de la grille il pourrait bloquer la stratégie. Il faudrait ainsi programmer un agent qui au lieu d'essayer de gagner le jeu essaye de favoriser cette situation où le bug apparaît. Cela est beaucoup plus simple que de tenter de gagner le jeu car l'adversaire essayera lui de gagner s'il n'a pas découvert le bug. 
 
