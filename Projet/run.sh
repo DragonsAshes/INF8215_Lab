@@ -14,8 +14,8 @@ python my_player.py -b localhost -p $PORT1 &
 PID1=$!
 python my_player.py -b localhost -p $PORT2 &
 PID2=$!
-python game.py http://localhost:$PORT2 http://localhost:$PORT1 --time 3000
+python game.py http://localhost:$PORT1 http://localhost:$PORT2 --time 3000
 #python game.py http://localhost:$PORT1 human --time 3000
-#python game.py human http://localhost:$PORT1 --time 3000
+#python game.py human human --time 3000
 
 finish
