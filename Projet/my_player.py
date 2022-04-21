@@ -269,7 +269,8 @@ class MyAgent(Agent):
             actions = remove_useless_pawn_moves(actions, player)
             # Only keep 20 first moves
             actions = actions[:20]
-            
+            if not actions:
+                actions.append(("P", *state.get_shortest_path(player)[0]))
             for action in actions:
                 try:
                     values.append((min_value(state.clone().play_action(action, player), alpha, beta, depth+1)[0], action))
@@ -297,6 +298,8 @@ class MyAgent(Agent):
             actions = remove_useless_pawn_moves(actions, 1-player)
             # Only keep 20 first moves
             actions = actions[:20]
+            if not actions:
+                actions.append(("P", *state.get_shortest_path(1-player)[0]))
             for action in actions: 
                 try:
                     values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
