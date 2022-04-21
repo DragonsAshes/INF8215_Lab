@@ -6,6 +6,7 @@
 \usepackage[numbers]{natbib}
 \usepackage[french]{babel}
 \usepackage{hyperref}
+\usepackage{graphicx}
 
 \title{Projet - Agent intelligent pour le jeu Quoridor}
 \author{
@@ -68,6 +69,20 @@ La plupart des fonctions du moteur de jeu renvoient une exception NoPath si elle
 explain except NoPath
 
 % TODO: insérer screenshot de la construction
+\begin{figure}
+	\centering
+	\caption{My\_player VS Greedy\_player}
+	\includegraphics[width=0.75\paperwidth]{myplayer_vs_greedy.png}
+    	\label{fig:arch}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\caption{Greed\_player VS My\_player}
+	\includegraphics[width=0.75\paperwidth]{greedy_vs_myplayer.png}
+	\label{fig:arch}
+\end{figure}
+
 
 Il est possible de construire la situation suivante pour forcer un cas où le seul chemin possible est bloqué par notre pion. Ainsi lorsque l'agent de l'adversaire fait un appel au moteur de jeu, par exemple en appelant min\_steps\_before\_victory, une erreur NoPath sera retournée faisant ainsi planter le programme de l'agent. Une contre mesure que nous avons utilisé est d'utiliser un bloc try/catch devant chaque appel au moteur de jeu pour récupérer cette exception et jouer un coup aléatoire dans ce cas. Cependant cette contre mesure ne fonctionne pas totalement car si l'adversaire décide de poser un mur, la fonction is\_wall\_possible\_here du code coté serveur va être appelée et l'adversaire va se faire renvoyer pour coup invalide. 
 
