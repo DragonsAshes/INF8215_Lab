@@ -231,16 +231,6 @@ class MyAgent(Agent):
             return abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1])
           return 2*(abs(action[1] - percepts['pawns'][1-p][0]) + abs(action[2] - percepts['pawns'][1-p][1]))
 
-        # Remove pwn moves which are not the best
-        # Used to avoid going back and forth
-        def remove_useless_pawn_moves(L, p):
-            best_pawn_move = state.get_shortest_path(p)[0]
-            L2 = []
-            for a in L:
-                if a[0] != "P" or (a[1], a[2]) == best_pawn_move:
-                    L2.append(a)
-            return L2
-
         # If there is no path, play the best pwn move by default
         # Used to avoid the glitch where the path is blocked by one of the player
         if not state.paths_exist():
@@ -266,9 +256,6 @@ class MyAgent(Agent):
             random.shuffle(actions)
             #Sort moves using heuristic
             actions.sort(key=partial(move_heuristic, player))
-            actions = remove_useless_pawn_moves(actions, player)
-            # Only keep 20 first moves
-            # actions = actions[:20]
             
             for action in actions:
                 try:
@@ -294,9 +281,6 @@ class MyAgent(Agent):
             random.shuffle(actions)
             #Sort moves using heuristic
             actions.sort(key=partial(move_heuristic, 1-player))
-            actions = remove_useless_pawn_moves(actions, 1-player)
-            # Only keep 20 first moves
-            # actions = actions[:20]
             for action in actions: 
                 try:
                     values.append((max_value(state.clone().play_action(action, 1-player), alpha, beta, depth+1)[0], action))
